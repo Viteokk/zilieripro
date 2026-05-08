@@ -717,7 +717,10 @@ export class VoucherListComponent implements OnInit {
 
   protected cancelVoucher(voucher: VoucherTableItem): void {
     this.voucherDataService
-      .cancelVoucher(voucher.id, { reason: 'CA01' })
+      .cancelVoucher(voucher.id, {
+        reasonCode: 'CA01',
+        cancellationDate: new Date().toISOString().split('T')[0],
+      })
       .subscribe(() => this.loadVouchers());
   }
 
