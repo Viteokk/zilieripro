@@ -23,45 +23,54 @@ import { AuthStore } from '../../../shared/auth/auth.store';
            class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
           &larr; {{ 'worker.profile.back' | t }}
         </a>
-        @if (voucher() && !isInspector()) {
+        @if (voucher()) {
           <div class="flex items-center gap-2">
-            @if (voucher()!.status === 'Activ' || voucher()!.status === 'Executat') {
-              <button type="button" (click)="showSignModal.set(true)"
-                class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                {{ (voucher()!.signatureDataUrl ? 'action.resign' : 'action.sign') | t }}
-              </button>
+            @if (!isInspector()) {
+              @if (voucher()!.status === 'Activ' || voucher()!.status === 'Executat') {
+                <button type="button" (click)="showSignModal.set(true)"
+                  class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                  {{ (voucher()!.signatureDataUrl ? 'action.resign' : 'action.sign') | t }}
+                </button>
+              }
+              @if (voucher()!.status === 'Emis') {
+                <a [routerLink]="['/vouchers', voucher()!.id, 'edit']"
+                   class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
+                  {{ 'action.edit' | t }}
+                </a>
+                <button type="button" (click)="activate()"
+                  class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90">
+                  {{ 'action.activate' | t }}
+                </button>
+                <button type="button" (click)="showCancelModal.set(true)"
+                  class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-destructive text-white px-4 text-sm font-medium hover:bg-destructive/90">
+                  {{ 'action.cancel' | t }}
+                </button>
+              }
+              @if (voucher()!.status === 'Activ') {
+                <button type="button" (click)="execute()"
+                  class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90">
+                  {{ 'action.execute' | t }}
+                </button>
+                <button type="button" (click)="showCancelModal.set(true)"
+                  class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-destructive text-white px-4 text-sm font-medium hover:bg-destructive/90">
+                  {{ 'action.cancel' | t }}
+                </button>
+              }
+              @if (voucher()!.status === 'Executat') {
+                <button type="button" (click)="report()"
+                  class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90">
+                  {{ 'action.report' | t }}
+                </button>
+              }
             }
-            @if (voucher()!.status === 'Emis') {
-              <a [routerLink]="['/vouchers', voucher()!.id, 'edit']"
-                 class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
-                {{ 'action.edit' | t }}
-              </a>
-              <button type="button" (click)="activate()"
-                class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90">
-                {{ 'action.activate' | t }}
-              </button>
-              <button type="button" (click)="showCancelModal.set(true)"
-                class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-destructive text-white px-4 text-sm font-medium hover:bg-destructive/90">
-                {{ 'action.cancel' | t }}
-              </button>
-            }
-            @if (voucher()!.status === 'Activ') {
-              <button type="button" (click)="execute()"
-                class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90">
-                {{ 'action.execute' | t }}
-              </button>
-              <button type="button" (click)="showCancelModal.set(true)"
-                class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-destructive text-white px-4 text-sm font-medium hover:bg-destructive/90">
-                {{ 'action.cancel' | t }}
-              </button>
-            }
-            @if (voucher()!.status === 'Executat') {
-              <button type="button" (click)="report()"
-                class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90">
-                {{ 'action.report' | t }}
-              </button>
-            }
+            <a [routerLink]="['/vouchers', voucher()!.id, 'receipt']"
+              class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0-3-3m3 3 3-3M3 17V7a2 2 0 0 1 2-2h6l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              </svg>
+              Chitanta
+            </a>
             <button type="button" (click)="print()"
               class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4">

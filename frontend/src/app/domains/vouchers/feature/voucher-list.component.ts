@@ -7,11 +7,12 @@ import { VoucherStore } from '../data/voucher.store';
 import { VoucherDataService } from '../data/voucher-data.service';
 import { AuthStore } from '../../../shared/auth/auth.store';
 import { PaginatedResult, VoucherStatus, VoucherTableItem } from '../../../shared/models/voucher.model';
+import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
 
 @Component({
   selector: 'app-voucher-list',
   standalone: true,
-  imports: [FormsModule, RouterLink, StatusBadgeComponent, TranslatePipe],
+  imports: [FormsModule, RouterLink, StatusBadgeComponent, TranslatePipe, MaskIdnpPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mx-auto">
@@ -268,7 +269,7 @@ import { PaginatedResult, VoucherStatus, VoucherTableItem } from '../../../share
                   </a>
                 </td>
                 <td class="px-4 py-3 align-middle whitespace-nowrap text-foreground">{{ voucher.workerFullName }}</td>
-                <td class="px-4 py-3 align-middle whitespace-nowrap text-foreground/60 font-mono text-xs">{{ voucher.workerIdnp ?? '—' }}</td>
+                <td class="px-4 py-3 align-middle whitespace-nowrap text-foreground/60 font-mono text-xs">{{ voucher.workerIdnp | maskIdnp }}</td>
                 <td class="px-4 py-3 align-middle whitespace-nowrap text-foreground/80">{{ voucher.workDistrict }}</td>
                 <td class="px-4 py-3 align-middle whitespace-nowrap">
                   <span class="inline-flex items-center gap-1.5 text-sm">
