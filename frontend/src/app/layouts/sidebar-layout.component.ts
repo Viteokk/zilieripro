@@ -174,7 +174,6 @@ export class SidebarLayoutComponent implements OnInit {
 
   readonly inspectorNav: NavItem[] = [
     { label: 'nav.vouchers', route: '/vouchers', icon: '\u{1F4CB}' },
-    { label: 'nav.ipc21', route: '/reports/ipc21', icon: '\u{1F4C4}' },
   ];
 
   readonly adminNav: NavItem[] = [
