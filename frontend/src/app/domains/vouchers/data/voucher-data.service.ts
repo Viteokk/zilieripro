@@ -49,7 +49,7 @@ export class VoucherDataService {
     });
   }
 
-  cancelVoucher(id: string, request: { reason: string; note?: string }): Observable<VoucherDetail> {
+  cancelVoucher(id: string, request: { reasonCode: string; cancellationDate: string; note?: string }): Observable<VoucherDetail> {
     return this.http.post<VoucherDetail>(`${this.baseUrl}/${id}/cancel`, request);
   }
 

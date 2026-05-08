@@ -37,9 +37,24 @@ public class CancelVoucherCommandHandler(
                     $"Voucherul poate fi anulat doar din starea Emis sau Activ. Starea curenta: {voucher.Status}.")]), 400);
         }
 
+        var reason = command.Request.ReasonCode.Replace("-", "") switch
+        {
+            "CA01" => CancellationReasonCode.CA01,
+            "CA02" => CancellationReasonCode.CA02,
+            "CA03" => CancellationReasonCode.CA03,
+            _ => (CancellationReasonCode?)null
+        };
+        if (reason is null)
+        {
+            return (null, new ValidationResult(
+                [new ValidationFailure("ReasonCode", "Motivul anularii este invalid.")]), 400);
+        }
+
         voucher.Status = VoucherStatus.Anulat;
-        voucher.CancellationReason = command.Request.Reason;
-        voucher.CancellationDate = DateTimeOffset.UtcNow;
+        voucher.CancellationReason = reason.Value;
+        voucher.CancellationDate = command.Request.CancellationDate.HasValue
+            ? new DateTimeOffset(command.Request.CancellationDate.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero)
+            : DateTimeOffset.UtcNow;
         voucher.CancellationNote = command.Request.Note;
         voucher.UpdatedAt = DateTimeOffset.UtcNow;
 

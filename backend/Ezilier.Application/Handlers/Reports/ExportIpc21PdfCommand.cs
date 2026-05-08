@@ -89,7 +89,11 @@ public class ExportIpc21PdfCommandHandler(
             }
         }
 
-        var fileName = $"IPC21-{model.Beneficiary.Idno}-{command.Period}.pdf";
+        var periodParts = command.Period.Split('-');
+        string[] roMonths = ["Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie",
+            "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"];
+        var monthName = roMonths[int.Parse(periodParts[1]) - 1];
+        var fileName = $"IPC21_{model.Beneficiary.Idno}_{monthName}_{periodParts[0]}.pdf";
         logger.LogInformation(
             "IPC21 export OK: beneficiary={BeneficiaryId} period={Period} transitioned={Count}",
             command.BeneficiaryId, command.Period, transitionedCount);

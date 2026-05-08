@@ -40,7 +40,8 @@ public record EditVoucherRequest
 
 public record CancelVoucherRequest
 {
-    public CancellationReasonCode Reason { get; init; }
+    public string ReasonCode { get; init; } = string.Empty;
+    public DateOnly? CancellationDate { get; init; }
     public string? Note { get; init; }
 }
 

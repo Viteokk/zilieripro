@@ -8,7 +8,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, HostListener, Input, 
     <div class="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4" (click)="cancel()">
       <div class="bg-white rounded-xl shadow-2xl w-full max-w-md flex flex-col" (click)="$event.stopPropagation()">
         <div class="p-6 pb-4 border-b border-foreground/10 flex items-start justify-between gap-4">
-          <h3 class="text-lg font-semibold">{{ title }}</h3>
+          <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
           <button type="button" aria-label="Inchide" [disabled]="submitting"
             class="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
             (click)="cancel()">
@@ -18,7 +18,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, HostListener, Input, 
           </button>
         </div>
 
-        <div class="p-6 text-sm text-foreground/80">
+        <div class="p-6 text-sm text-gray-600">
           {{ message }}
         </div>
 

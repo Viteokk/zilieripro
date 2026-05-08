@@ -181,3 +181,10 @@ export interface NomenclatorModel {
   isActive: boolean;
   sortOrder: number;
 }
+
+export interface VoucherActivityItem {
+  actionLabel: string;
+  userFullName: string | null;
+  timestamp: string;
+  changes?: string[];
+}

@@ -59,7 +59,7 @@ public class GetIpc21ReportQueryHandler(
                 return new Ipc21LineItem
                 {
                     WorkerIdnp = worker.Idnp,
-                    WorkerFullName = $"{worker.FirstName} {worker.LastName}",
+                    WorkerFullName = $"{worker.LastName.ToUpperInvariant()} {worker.FirstName.ToUpperInvariant()}",
                     VoucherCount = g.Count(),
                     TotalHours = g.Sum(v => v.HoursWorked),
                     NetRemuneration = g.Sum(v => v.NetRemuneration),
@@ -77,6 +77,7 @@ public class GetIpc21ReportQueryHandler(
                     CalculatedContribution = cnasSum
                 };
             })
+            .Where(l => l.ContributionBase > 0)
             .OrderBy(l => l.WorkerFullName)
             .ToList();
 

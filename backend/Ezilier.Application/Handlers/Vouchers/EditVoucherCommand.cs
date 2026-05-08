@@ -1,16 +1,19 @@
 using Ezilier.Application.Interfaces;
 using Ezilier.Application.Models;
 using Ezilier.Application.Services;
+using Ezilier.Domain.Entities;
 using Ezilier.Domain.Enums;
 using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace Ezilier.Application.Handlers.Vouchers;
 
 public record EditVoucherCommand(
     Guid Id,
-    EditVoucherRequest Request
+    EditVoucherRequest Request,
+    string? UserIdnp = null
 ) : IRequest<(VoucherDetailModel? Model, ValidationResult? ValidationResult, int StatusCode)>;
 
 public class EditVoucherCommandHandler(
@@ -41,6 +44,16 @@ public class EditVoucherCommandHandler(
                 [new ValidationFailure("Status",
                     $"Voucherul nu poate fi editat in starea {voucher.Status}.")]), 400);
         }
+
+        // Capture old values for audit trail
+        var oldHoursWorked = voucher.HoursWorked;
+        var oldNetRemuneration = voucher.NetRemuneration;
+        var oldWorkDate = voucher.WorkDate;
+        var oldWorkDistrict = voucher.WorkDistrict;
+        var oldWorkLocality = voucher.WorkLocality;
+        var oldWorkAddress = voucher.WorkAddress;
+        var oldPhone = voucher.Worker?.Phone;
+        var oldEmail = voucher.Worker?.Email;
 
         var failures = new List<ValidationFailure>();
         var remunerationChanged = false;
@@ -169,6 +182,37 @@ public class EditVoucherCommandHandler(
         }
 
         voucher.UpdatedAt = DateTimeOffset.UtcNow;
+
+        // Build field-level change audit
+        var auditChanges = new List<string>();
+        if (voucher.HoursWorked != oldHoursWorked)
+            auditChanges.Add($"Ore lucrate: {oldHoursWorked} → {voucher.HoursWorked}");
+        if (voucher.NetRemuneration != oldNetRemuneration)
+            auditChanges.Add($"Remuneratie neta: {oldNetRemuneration:F2} → {voucher.NetRemuneration:F2}");
+        if (voucher.WorkDate != oldWorkDate)
+            auditChanges.Add($"Data activitatii: {oldWorkDate} → {voucher.WorkDate}");
+        if (voucher.WorkDistrict != oldWorkDistrict)
+            auditChanges.Add($"Raion: {oldWorkDistrict} → {voucher.WorkDistrict}");
+        if (voucher.WorkLocality != oldWorkLocality)
+            auditChanges.Add($"Localitate: {oldWorkLocality} → {voucher.WorkLocality}");
+        if (voucher.WorkAddress != oldWorkAddress)
+            auditChanges.Add($"Adresa: {oldWorkAddress ?? "-"} → {voucher.WorkAddress ?? "-"}");
+        if (voucher.Worker?.Phone != oldPhone)
+            auditChanges.Add($"Telefon: {oldPhone ?? "-"} → {voucher.Worker?.Phone ?? "-"}");
+        if (voucher.Worker?.Email != oldEmail)
+            auditChanges.Add($"Email: {oldEmail ?? "-"} → {voucher.Worker?.Email ?? "-"}");
+
+        if (auditChanges.Count > 0)
+        {
+            context.AuditLogs.Add(new AuditLog
+            {
+                EntityType = "VoucherEdit",
+                EntityId = voucher.Id,
+                UserName = command.UserIdnp,
+                Action = $"PUT /api/zilieri/vouchers/{voucher.Id}",
+                Details = JsonSerializer.Serialize(auditChanges),
+            });
+        }
 
         await context.SaveChangesAsync(cancellationToken);
 

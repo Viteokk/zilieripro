@@ -10,7 +10,12 @@ namespace Ezilier.Infrastructure.Services;
 
 public class Ipc21PdfGenerator : IIpc21PdfGenerator
 {
-    private static readonly CultureInfo RoCulture = new("ro-RO");
+    private static readonly NumberFormatInfo IpcNumberFormat = new()
+    {
+        NumberGroupSeparator = " ", // non-breaking space
+        NumberDecimalSeparator = ".",
+        NumberDecimalDigits = 2,
+    };
     private static bool _customFontsRegistered;
     private static readonly object _fontLock = new();
 
@@ -103,7 +108,7 @@ public class Ipc21PdfGenerator : IIpc21PdfGenerator
                             var line = model.Lines[i];
 
                             table.Cell().Border(0.5f).Padding(2).AlignCenter().AlignMiddle()
-                                .Text((i + 1).ToString()).FontSize(7);
+                                .Text((i + 3).ToString()).FontSize(7);
                             table.Cell().Border(0.5f).Padding(2).AlignMiddle()
                                 .Text(line.WorkerFullName).FontSize(7);
                             table.Cell().Border(0.5f).Padding(2).AlignMiddle()
@@ -146,7 +151,7 @@ public class Ipc21PdfGenerator : IIpc21PdfGenerator
         }).GeneratePdf();
     }
 
-    private static string FormatDecimal(decimal value) => value.ToString("N2", RoCulture);
+    private static string FormatDecimal(decimal value) => value.ToString("N2", IpcNumberFormat);
 
     private static void EnsureCustomFontsRegistered()
     {

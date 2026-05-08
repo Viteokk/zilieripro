@@ -130,6 +130,29 @@ import { StatusBadgeComponent } from '../../../shared/ui/components/status-badge
             </div>
           </div>
 
+          <!-- Contact lucrator -->
+          <div class="bg-card text-card-foreground rounded-xl ring-1 ring-foreground/10 shadow-xs p-6">
+            <h2 class="text-lg font-semibold text-foreground mb-4">Contact lucrator</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <label class="text-sm font-medium leading-none select-none">Telefon</label>
+                <input
+                  type="tel"
+                  formControlName="phone"
+                  class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50"
+                />
+              </div>
+              <div class="space-y-2">
+                <label class="text-sm font-medium leading-none select-none">Email</label>
+                <input
+                  type="email"
+                  formControlName="email"
+                  class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50"
+                />
+              </div>
+            </div>
+          </div>
+
           <!-- Financial -->
           <div class="bg-card text-card-foreground rounded-xl ring-1 ring-foreground/10 shadow-xs p-6">
             <h2 class="text-lg font-semibold text-foreground mb-4">Remunerare</h2>
@@ -215,6 +238,8 @@ export class VoucherEditComponent implements OnInit {
     art5Alin1LitB: [false],
     art5Alin1LitG: [false],
     netRemuneration: [0, [Validators.required, Validators.min(1)]],
+    phone: [''],
+    email: [''],
   });
 
   protected taxCalc = signal({ net: 0, tax: 0, cnas: 0, gross: 0 });
@@ -244,18 +269,25 @@ export class VoucherEditComponent implements OnInit {
     this.errorMessage.set('');
 
     const value = this.form.getRawValue();
-    const request: Partial<VoucherDetail> = {
-      workDate: value.workDate!,
-      hoursWorked: value.hoursWorked!,
-      workDistrict: value.workDistrict!,
-      workLocality: value.workLocality!,
-      workAddress: value.workAddress || undefined,
-      art5Alin1LitB: value.art5Alin1LitB ?? false,
-      art5Alin1LitG: value.art5Alin1LitG ?? false,
+    const isActiv = this.voucher()!.status === 'Activ';
+
+    const req: Record<string, unknown> = {
+      hoursWorked: value.hoursWorked,
       netRemuneration: Number(value.netRemuneration),
+      phone: value.phone || null,
+      email: value.email || null,
     };
 
-    this.voucherDataService.editVoucher(this.voucherId, request).subscribe({
+    if (!isActiv) {
+      req['workDate'] = value.workDate;
+      req['workDistrict'] = value.workDistrict;
+      req['workLocality'] = value.workLocality;
+      req['workAddress'] = value.workAddress || null;
+      req['art5Alin1LitB'] = value.art5Alin1LitB ?? false;
+      req['art5Alin1LitG'] = value.art5Alin1LitG ?? false;
+    }
+
+    this.voucherDataService.editVoucher(this.voucherId, req).subscribe({
       next: () => {
         this.submitting.set(false);
         this.router.navigate(['/vouchers', this.voucherId]);
@@ -291,11 +323,14 @@ export class VoucherEditComponent implements OnInit {
       art5Alin1LitB: v.art5Alin1LitB,
       art5Alin1LitG: v.art5Alin1LitG,
       netRemuneration: v.netRemuneration,
+      phone: v.worker.phone ?? '',
+      email: v.worker.email ?? '',
     });
 
-    // Lock fields if status is ACTIV (RSP validated)
+    // Lock location fields if status is ACTIV (RSP validated — only hours, net, phone, email editable)
     if (v.status === 'Activ') {
-      this.form.get('workDate')?.disable();
+      ['workDate', 'workDistrict', 'workLocality', 'workAddress', 'art5Alin1LitB', 'art5Alin1LitG']
+        .forEach(f => this.form.get(f)?.disable());
     }
 
     // Trigger tax recalculation

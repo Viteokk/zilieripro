@@ -5,7 +5,7 @@ import { UpperCasePipe } from '@angular/common';
 import { ApiService } from '../../../shared/services/api.service';
 import { NomenclatorModel } from '../../../shared/models/voucher.model';
 import { VoucherDataService } from '../data/voucher-data.service';
-import { VoucherDetail, VoucherStatus, CancellationReasonCode } from '../../../shared/models/voucher.model';
+import { VoucherActivityItem, VoucherDetail, VoucherStatus, CancellationReasonCode } from '../../../shared/models/voucher.model';
 import { SignaturePadComponent } from '../../../shared/ui/components/signature-pad.component';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { AuthStore } from '../../../shared/auth/auth.store';
@@ -48,6 +48,10 @@ import { AuthStore } from '../../../shared/auth/auth.store';
                 </button>
               }
               @if (voucher()!.status === 'Activ') {
+                <a [routerLink]="['/vouchers', voucher()!.id, 'edit']"
+                   class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
+                  {{ 'action.edit' | t }}
+                </a>
                 <button type="button" (click)="execute()"
                   class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90">
                   {{ 'action.execute' | t }}
@@ -77,6 +81,13 @@ import { AuthStore } from '../../../shared/auth/auth.store';
                 <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
               </svg>
               Print
+            </button>
+            <button type="button" (click)="toggleActivity()"
+              [class]="showActivity() ? 'inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-accent px-4 text-sm font-medium' : 'inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+              </svg>
+              Activitate
             </button>
           </div>
         }
@@ -161,7 +172,7 @@ import { AuthStore } from '../../../shared/auth/auth.store';
               <h2 class="text-sm font-bold uppercase mb-2">Voucher anulat</h2>
               <dl class="grid grid-cols-[200px_1fr] gap-y-1">
                 <dt>Motiv</dt><dd>{{ cancelReasonLabel(v.cancellationReason!) }}</dd>
-                @if (v.cancellationNote) { <dt>Nota</dt><dd>{{ v.cancellationNote }}</dd> }
+                @if (v.cancellationNote) { <dt>Comentarii</dt><dd>{{ v.cancellationNote }}</dd> }
                 @if (v.cancellationDate) { <dt>Data anularii</dt><dd>{{ formatDateTime(v.cancellationDate) }}</dd> }
               </dl>
             </section>
@@ -198,34 +209,73 @@ import { AuthStore } from '../../../shared/auth/auth.store';
             Document generat automat din sistemul informational eZilier.
           </div>
         </div>
+
+        @if (showActivity()) {
+          <div class="mt-6 print:hidden">
+            <h3 class="text-sm font-semibold mb-3 text-gray-900">Activitate voucher</h3>
+            @if (activityLoading()) {
+              <p class="text-sm text-muted-foreground">Se incarca...</p>
+            } @else if (activity().length === 0) {
+              <p class="text-sm text-muted-foreground">Nicio activitate inregistrata.</p>
+            } @else {
+              <div class="flex flex-col gap-2">
+                @for (item of activity(); track item.timestamp) {
+                  <div class="flex items-start gap-3 rounded-lg border border-border bg-background p-3">
+                    <svg class="mt-0.5 size-4 shrink-0 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/>
+                    </svg>
+                    <div>
+                      <p class="text-sm font-semibold text-gray-900">{{ item.userFullName ? item.userFullName + ' ' : '' }}{{ item.actionLabel }}</p>
+                      <p class="text-xs text-gray-500">{{ formatDateTime(item.timestamp) }}</p>
+                      @if (item.changes && item.changes.length > 0) {
+                        <ul class="mt-1 space-y-0.5">
+                          @for (change of item.changes; track change) {
+                            <li class="text-xs text-gray-600">{{ change }}</li>
+                          }
+                        </ul>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
       }
 
       <!-- Cancel modal -->
       @if (showCancelModal()) {
         <div class="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4 print:hidden" (click)="showCancelModal.set(false)">
           <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6" (click)="$event.stopPropagation()">
-            <h3 class="text-lg font-semibold mb-4">{{ 'voucher.detail.cancelModal' | t }}</h3>
-            <div class="space-y-3">
+            <h3 class="text-lg font-semibold mb-4 text-gray-900">{{ 'voucher.detail.cancelModal' | t }}</h3>
+            <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium mb-1">{{ 'field.reason' | t }}</label>
+                <label class="block text-sm font-medium mb-1">Motiv anulare <span class="text-destructive">*</span></label>
                 <select [(ngModel)]="cancelReasonCode"
                   class="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm">
-                  <option value="CA01">CA01 — Eroare la emitere</option>
-                  <option value="CA02">CA02 — Renuntare lucrator</option>
-                  <option value="CA03">CA03 — Alt motiv</option>
+                  <option value="">Selectati motivul</option>
+                  @for (r of cancelReasons(); track r.id) {
+                    <option [value]="r.code">{{ r.titleRo }}</option>
+                  }
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium mb-1">{{ 'field.note' | t }}</label>
-                <textarea [(ngModel)]="cancelNote" rows="3"
+                <label class="block text-sm font-medium mb-1">Data anularii <span class="text-destructive">*</span></label>
+                <input type="date" [(ngModel)]="cancelDate"
+                  class="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Comentarii</label>
+                <textarea [(ngModel)]="cancelNote" rows="3" maxlength="500"
                   class="flex w-full rounded-md border border-input bg-white px-3 py-2 text-sm"></textarea>
+                <p class="text-xs text-muted-foreground mt-1">{{ cancelNote.length }}/500</p>
               </div>
             </div>
             <div class="mt-5 flex justify-end gap-2">
               <button type="button" (click)="showCancelModal.set(false)"
                 class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm">{{ 'action.close' | t }}</button>
-              <button type="button" (click)="confirmCancel()"
-                class="inline-flex h-9 items-center justify-center rounded-md bg-destructive text-white px-4 text-sm font-medium">{{ 'voucher.detail.confirmCancel' | t }}</button>
+              <button type="button" (click)="confirmCancel()" [disabled]="!cancelReasonCode || !cancelDate"
+                class="inline-flex h-9 items-center justify-center rounded-md bg-destructive text-white px-4 text-sm font-medium disabled:opacity-50">{{ 'voucher.detail.confirmCancel' | t }}</button>
             </div>
           </div>
         </div>
@@ -286,15 +336,23 @@ export class VoucherDetailComponent implements OnInit {
   protected readonly showSignModal = signal(false);
   protected readonly signatureData = signal<string | null>(null);
   protected readonly saving = signal(false);
+  protected readonly showActivity = signal(false);
+  protected readonly activity = signal<VoucherActivityItem[]>([]);
+  protected readonly activityLoading = signal(false);
   protected readonly activityTypes = signal<NomenclatorModel[]>([]);
-  protected cancelReasonCode = 'CA01';
+  protected readonly cancelReasons = signal<NomenclatorModel[]>([]);
+  protected cancelReasonCode = '';
   protected cancelNote = '';
+  protected cancelDate = new Date().toISOString().split('T')[0];
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadVoucher(id);
     this.api.getNomenclators('activity_types').subscribe({
       next: (list) => this.activityTypes.set(list ?? []),
+    });
+    this.api.getNomenclators('cancellation_reasons').subscribe({
+      next: (list) => this.cancelReasons.set(list ?? []),
     });
   }
 
@@ -342,25 +400,27 @@ export class VoucherDetailComponent implements OnInit {
   }
 
   protected confirmCancel(): void {
+    if (!this.cancelReasonCode || !this.cancelDate) return;
     this.voucherDataService
-      .cancelVoucher(this.voucher()!.id, { reason: this.cancelReasonCode, note: this.cancelNote || undefined })
+      .cancelVoucher(this.voucher()!.id, {
+        reasonCode: this.cancelReasonCode,
+        cancellationDate: this.cancelDate,
+        note: this.cancelNote || undefined,
+      })
       .subscribe({
         next: (v) => {
           this.voucher.set(v);
           this.showCancelModal.set(false);
-          this.cancelReasonCode = 'CA01';
+          this.cancelReasonCode = '';
           this.cancelNote = '';
+          this.cancelDate = new Date().toISOString().split('T')[0];
         },
       });
   }
 
   protected cancelReasonLabel(code: CancellationReasonCode): string {
-    const labels: Record<CancellationReasonCode, string> = {
-      CA01: 'Eroare la emitere',
-      CA02: 'Renuntare lucrator',
-      CA03: 'Alt motiv',
-    };
-    return labels[code] || code;
+    const found = this.cancelReasons().find((r) => r.code.replace('-', '') === code);
+    return found?.titleRo || code;
   }
 
   protected formatDate(iso: string): string {
@@ -378,6 +438,18 @@ export class VoucherDetailComponent implements OnInit {
     const date = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
     const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     return `${date} ${time}`;
+  }
+
+  protected toggleActivity(): void {
+    const next = !this.showActivity();
+    this.showActivity.set(next);
+    if (next && this.activity().length === 0) {
+      this.activityLoading.set(true);
+      this.api.getVoucherActivity(this.voucher()!.id).subscribe({
+        next: (items) => { this.activity.set(items); this.activityLoading.set(false); },
+        error: () => this.activityLoading.set(false),
+      });
+    }
   }
 
   protected formatMoney(n: number): string {

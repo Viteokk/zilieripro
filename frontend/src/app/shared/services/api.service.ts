@@ -12,6 +12,7 @@ import {
   StatisticsModel,
   UserInfo,
   UserTableItem,
+  VoucherActivityItem,
   VoucherCreatedSummary,
   VoucherDetail,
   VoucherTableItem,
@@ -101,6 +102,10 @@ export class ApiService {
 
   reportVouchers(voucherIds: string[], reportPeriod: string): Observable<void> {
     return this.post<void>('/vouchers/report', { voucherIds, reportPeriod });
+  }
+
+  getVoucherActivity(id: string): Observable<VoucherActivityItem[]> {
+    return this.get<VoucherActivityItem[]>(`/vouchers/${id}/activity`);
   }
 
   // --------------- Workers ---------------

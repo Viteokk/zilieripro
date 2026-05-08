@@ -46,7 +46,7 @@ public class VouchersController : BaseApiController
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Edit(Guid id, [FromBody] EditVoucherRequest request)
     {
-        var (model, errors, status) = await Mediator.Send(new EditVoucherCommand(id, request));
+        var (model, errors, status) = await Mediator.Send(new EditVoucherCommand(id, request, CurrentIdnp));
         return StatusCode(status, errors is not null ? errors : model);
     }
 
@@ -83,5 +83,12 @@ public class VouchersController : BaseApiController
     {
         var (model, errors, status) = await Mediator.Send(new SignVoucherCommand(id, request));
         return StatusCode(status, errors is not null ? errors : model);
+    }
+
+    [HttpGet("{id:guid}/activity")]
+    public async Task<IActionResult> GetActivity(Guid id)
+    {
+        var (items, errors, status) = await Mediator.Send(new GetVoucherActivityQuery(id));
+        return StatusCode(status, errors is not null ? errors : items);
     }
 }
