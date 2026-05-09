@@ -7,11 +7,12 @@ import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { AuthStore } from '../../../shared/auth/auth.store';
 import { WorkerEditComponent } from './worker-edit.component';
 import { ConfirmDialogComponent } from '../../../shared/ui/confirm-dialog.component';
+import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
 
 @Component({
   selector: 'app-worker-profile',
   standalone: true,
-  imports: [RouterLink, StatusBadgeComponent, TranslatePipe, WorkerEditComponent, ConfirmDialogComponent],
+  imports: [RouterLink, StatusBadgeComponent, TranslatePipe, WorkerEditComponent, ConfirmDialogComponent, MaskIdnpPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="max-w-7xl mx-auto">
@@ -69,7 +70,7 @@ import { ConfirmDialogComponent } from '../../../shared/ui/confirm-dialog.compon
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-8">
             <div>
               <dt class="text-sm text-muted-foreground">{{ "field.idnp" | t }}</dt>
-              <dd class="mt-1 text-sm font-medium text-foreground font-mono">{{ w.idnp }}</dd>
+              <dd class="mt-1 text-sm font-medium text-foreground font-mono">{{ w.idnp | maskIdnp }}</dd>
             </div>
             <div>
               <dt class="text-sm text-muted-foreground">{{ "field.lastName" | t }}</dt>

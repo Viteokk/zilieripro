@@ -140,11 +140,18 @@ export interface UserInfo {
   permissions: string[];
 }
 
+export interface CompanyInfo {
+  beneficiaryId: string;
+  companyName: string;
+  idno: string;
+}
+
 export interface LoginResponse {
   token: string;
   refreshToken: string;
   expiresAt: string;
   user: UserInfo;
+  availableCompanies: CompanyInfo[];
 }
 
 export interface UserTableItem {

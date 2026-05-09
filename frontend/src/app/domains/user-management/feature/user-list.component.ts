@@ -3,11 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../../shared/services/api.service';
 import { PaginatedResult, UserTableItem } from '../../../shared/models/voucher.model';
+import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
 
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, MaskIdnpPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="max-w-7xl mx-auto">
@@ -84,7 +85,7 @@ import { PaginatedResult, UserTableItem } from '../../../shared/models/voucher.m
             <tbody class="[&_tr:last-child]:border-0">
               @for (user of users(); track user.id) {
                 <tr class="hover:bg-muted/50 border-b border-foreground/5 transition-colors">
-                  <td class="p-2 align-middle whitespace-nowrap font-mono text-foreground/80">{{ user.idnp }}</td>
+                  <td class="p-2 align-middle whitespace-nowrap font-mono text-foreground/80">{{ user.idnp | maskIdnp }}</td>
                   <td class="p-2 align-middle whitespace-nowrap text-foreground/80">{{ user.lastName }}</td>
                   <td class="p-2 align-middle whitespace-nowrap text-foreground/80">{{ user.firstName }}</td>
                   <td class="p-2 align-middle whitespace-nowrap text-foreground/80">{{ user.email ?? '-' }}</td>

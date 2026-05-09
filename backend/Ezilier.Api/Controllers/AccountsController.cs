@@ -25,7 +25,15 @@ public class AccountsController : BaseApiController
     [HttpGet("me")]
     public async Task<IActionResult> Me()
     {
-        var (model, errors, status) = await Mediator.Send(new GetCurrentUserQuery { UserId = CurrentUserId });
+        var (model, errors, status) = await Mediator.Send(new GetCurrentUserQuery { UserId = CurrentUserId, BeneficiaryId = CurrentBeneficiaryId });
+        return StatusCode(status, errors is not null ? errors : model);
+    }
+
+    [Authorize]
+    [HttpPost("switch-company")]
+    public async Task<IActionResult> SwitchCompany([FromBody] SwitchCompanyRequest request)
+    {
+        var (model, errors, status) = await Mediator.Send(new SwitchCompanyCommand(CurrentUserId, request.BeneficiaryId));
         return StatusCode(status, errors is not null ? errors : model);
     }
 }

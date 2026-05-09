@@ -3,6 +3,7 @@ import { AuthStore } from '../../../shared/auth/auth.store';
 import { ApiService } from '../../../shared/services/api.service';
 import { UserTableItem } from '../../../shared/models/voucher.model';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
 
 interface CompanyInfo {
   idno: string;
@@ -15,7 +16,7 @@ interface CompanyInfo {
 @Component({
   selector: 'app-company-profile',
   standalone: true,
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, MaskIdnpPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="max-w-6xl mx-auto">
@@ -85,7 +86,7 @@ interface CompanyInfo {
               } @else {
                 @for (u of users(); track u.id) {
                   <tr class="border-b border-foreground/5 hover:bg-muted/30 transition-colors">
-                    <td class="px-3 py-3 font-mono text-xs text-foreground/80">{{ u.idnp }}</td>
+                    <td class="px-3 py-3 font-mono text-xs text-foreground/80">{{ u.idnp | maskIdnp }}</td>
                     <td class="px-3 py-3 font-medium text-foreground">{{ u.lastName }}</td>
                     <td class="px-3 py-3 font-medium text-foreground">{{ u.firstName }}</td>
                     <td class="px-3 py-3 text-foreground/80">{{ voucherCountFor(u) }}</td>

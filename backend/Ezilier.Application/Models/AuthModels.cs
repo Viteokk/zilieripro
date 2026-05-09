@@ -2,11 +2,16 @@ namespace Ezilier.Application.Models;
 
 public record LoginRequest(string Idnp, string Password);
 
+public record CompanyInfo(Guid BeneficiaryId, string CompanyName, string Idno);
+
+public record SwitchCompanyRequest(Guid BeneficiaryId);
+
 public record LoginResponse(
     string Token,
     string RefreshToken,
     DateTimeOffset ExpiresAt,
-    UserInfoModel User
+    UserInfoModel User,
+    List<CompanyInfo> AvailableCompanies
 );
 
 public record RefreshTokenRequest(string RefreshToken);

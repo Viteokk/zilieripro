@@ -8,6 +8,7 @@ import { NomenclatorModel } from '../../../shared/models/voucher.model';
 import { VoucherCreatedSummary, WorkerModel } from '../../../shared/models/voucher.model';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { optionalEmailValidator, optionalPhoneValidator } from '../../../shared/validators/optional-contact.validators';
+import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
 
 interface VoucherWorkerRow {
   id: string;
@@ -27,7 +28,7 @@ interface VoucherWorkerRow {
 @Component({
   selector: 'app-create-voucher',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, TranslatePipe],
+  imports: [ReactiveFormsModule, RouterLink, TranslatePipe, MaskIdnpPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="max-w-6xl mx-auto">
@@ -184,7 +185,7 @@ interface VoucherWorkerRow {
                               <tr class="border-t border-foreground/5 hover:bg-muted/30 cursor-pointer first:border-t-0" (click)="addFromExisting(w)">
                                 <td class="p-3">
                                   <div class="font-medium">{{ w.lastName }} {{ w.firstName }}</div>
-                                  <div class="text-xs text-muted-foreground font-mono">{{ w.idnp }}</div>
+                                  <div class="text-xs text-muted-foreground font-mono">{{ w.idnp | maskIdnp }}</div>
                                 </td>
                                 <td class="p-3 text-right">
                                   @if (w.rspValidated) {
@@ -321,7 +322,7 @@ interface VoucherWorkerRow {
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4 text-green-500" title="RSP validat"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
                         }
                       </div>
-                      <div class="text-xs text-muted-foreground">IDNP: {{ row.idnp }}</div>
+                      <div class="text-xs text-muted-foreground">IDNP: {{ row.idnp | maskIdnp }}</div>
                     </div>
                     <div class="flex items-center gap-1">
                       <button type="button" (click)="removeRow(i)" class="size-8 inline-flex items-center justify-center rounded-md hover:bg-destructive/10 text-destructive" title="Sterge">

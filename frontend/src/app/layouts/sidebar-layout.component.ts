@@ -1,8 +1,7 @@
-import { Component, ChangeDetectionStrategy, OnInit, computed, signal, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthStore } from '../shared/auth/auth.store';
-import { RsudService } from '../shared/services/rsud.service';
 import { I18nService, Lang } from '../shared/i18n/i18n.service';
 import { TranslatePipe } from '../shared/i18n/translate.pipe';
 
@@ -41,13 +40,19 @@ interface NavItem {
       </div>
 
       <div class="flex items-center gap-4">
-        <!-- Current company (read-only — to switch, user must log out) -->
-        @if (auth.roleType() === 'Angajator' && currentCompany(); as c) {
-          <div class="hidden sm:inline-flex h-8 items-center gap-2 rounded-md bg-secondary text-secondary-foreground px-3 text-xs font-medium"
-               [title]="'Pentru a schimba compania, iesiti si intrati din nou.'">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-3.5"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="22" x2="9" y2="16"/><line x1="15" y1="22" x2="15" y2="16"/></svg>
-            <span class="max-w-[220px] truncate">{{ c.companyName }}</span>
-          </div>
+        <!-- Company switcher (Angajator only) -->
+        @if (auth.roleType() === 'Angajator' && auth.user()?.beneficiaryName) {
+          <button
+            type="button"
+            (click)="openCompanyPicker()"
+            class="hidden sm:inline-flex h-8 items-center gap-2 rounded-md bg-secondary text-secondary-foreground px-3 text-xs font-medium hover:bg-secondary/80 transition-colors"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-3.5 shrink-0"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="22" x2="9" y2="16"/><line x1="15" y1="22" x2="15" y2="16"/></svg>
+            <span class="max-w-[180px] truncate">{{ auth.user()?.beneficiaryName }}</span>
+            @if (auth.availableCompanies().length > 1) {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-3 shrink-0"><polyline points="6 9 12 15 18 9"/></svg>
+            }
+          </button>
         }
         <!-- User info -->
         <div class="hidden sm:flex items-center gap-3">
@@ -140,30 +145,19 @@ interface NavItem {
         <router-outlet />
       </div>
     </main>
-
   `,
   styles: [`
     :host { display: block; }
   `],
 })
-export class SidebarLayoutComponent implements OnInit {
+export class SidebarLayoutComponent {
   readonly auth = inject(AuthStore);
-  readonly rsud = inject(RsudService);
   readonly i18n = inject(I18nService);
+  private readonly router = inject(Router);
   readonly sidebarOpen = signal(false);
 
   readonly langs: Lang[] = ['ro', 'ru', 'en'];
   setLang(l: Lang): void { this.i18n.setLang(l); }
-
-  readonly currentCompany = computed(() => this.rsud.selectedCompany());
-
-  ngOnInit(): void {
-    // Load the RSUD companies list so the header badge can show the
-    // currently selected company. The mandatory picker lives at /select-company.
-    if (this.auth.roleType() === 'Angajator' && this.rsud.companies().length === 0) {
-      this.rsud.loadCompanies().subscribe();
-    }
-  }
 
   readonly employerNav: NavItem[] = [
     { label: 'nav.vouchers', route: '/vouchers', icon: '\u{1F4CB}' },
@@ -195,6 +189,12 @@ export class SidebarLayoutComponent implements OnInit {
     this.sidebarOpen.set(false);
   }
 
+  openCompanyPicker(): void {
+    if (this.auth.availableCompanies().length > 1) {
+      this.router.navigate(['/select-company']);
+    }
+  }
+
   roleBadgeClass(role: string): string {
     switch (role) {
       case 'Angajator': return 'bg-primary/10 text-primary border border-primary/20';
@@ -206,9 +206,6 @@ export class SidebarLayoutComponent implements OnInit {
   }
 
   logout(): void {
-    // Clear the RSUD company selection so the next login starts fresh
-    // and the picker opens again if the user has multiple companies.
-    this.rsud.select(null);
     this.auth.logout();
   }
 }

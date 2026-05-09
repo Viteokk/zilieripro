@@ -9,11 +9,12 @@ import { VoucherActivityItem, VoucherDetail, VoucherStatus, CancellationReasonCo
 import { SignaturePadComponent } from '../../../shared/ui/components/signature-pad.component';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { AuthStore } from '../../../shared/auth/auth.store';
+import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
 
 @Component({
   selector: 'app-voucher-detail',
   standalone: true,
-  imports: [RouterLink, FormsModule, UpperCasePipe, SignaturePadComponent, TranslatePipe],
+  imports: [RouterLink, FormsModule, UpperCasePipe, SignaturePadComponent, TranslatePipe, MaskIdnpPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="max-w-7xl mx-auto">
@@ -125,7 +126,7 @@ import { AuthStore } from '../../../shared/auth/auth.store';
           <section class="mb-4">
             <h2 class="text-sm font-bold uppercase mb-2">Zilierul (Lucrator)</h2>
             <dl class="grid grid-cols-[200px_1fr] gap-y-1">
-              <dt>IDNP</dt><dd>{{ v.worker.idnp }}</dd>
+              <dt>IDNP</dt><dd>{{ v.worker.idnp | maskIdnp }}</dd>
               <dt>Numele</dt><dd>{{ v.worker.lastName }}</dd>
               <dt>Prenumele</dt><dd>{{ v.worker.firstName }}</dd>
             </dl>

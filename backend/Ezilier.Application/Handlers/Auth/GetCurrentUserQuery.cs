@@ -9,6 +9,7 @@ namespace Ezilier.Application.Handlers.Auth;
 public sealed class GetCurrentUserQuery : IRequest<(UserInfoModel? Model, ValidationResult? ValidationResult, int StatusCode)>
 {
     public Guid UserId { get; set; }
+    public Guid? BeneficiaryId { get; set; }
 }
 
 public sealed class GetCurrentUserQueryHandler
@@ -24,7 +25,7 @@ public sealed class GetCurrentUserQueryHandler
     public async Task<(UserInfoModel? Model, ValidationResult? ValidationResult, int StatusCode)> Handle(
         GetCurrentUserQuery query, CancellationToken ct)
     {
-        var identity = await _context.UserIdentities
+        var identityQuery = _context.UserIdentities
             .AsNoTracking()
             .Include(ui => ui.User)
             .Include(ui => ui.Role)
@@ -32,7 +33,12 @@ public sealed class GetCurrentUserQueryHandler
             .Include(ui => ui.Permissions)
                 .ThenInclude(up => up.Permission)
             .Include(ui => ui.Beneficiary)
-            .FirstOrDefaultAsync(ui => ui.UserId == query.UserId, ct);
+            .Where(ui => ui.UserId == query.UserId);
+
+        if (query.BeneficiaryId.HasValue)
+            identityQuery = identityQuery.Where(ui => ui.BeneficiaryId == query.BeneficiaryId.Value);
+
+        var identity = await identityQuery.FirstOrDefaultAsync(ct);
 
         if (identity is null)
         {

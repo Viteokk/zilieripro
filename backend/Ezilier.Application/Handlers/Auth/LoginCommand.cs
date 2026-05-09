@@ -30,71 +30,59 @@ public sealed class LoginCommandHandler
     {
         var request = command.Request;
 
-        // Find user by IDNP
         var user = await _context.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Idnp == request.Idnp, ct);
 
         if (user is null)
-        {
-            return (null, new ValidationResult(new[]
-            {
-                new ValidationFailure("Credentials", "IDNP sau parola incorectă.")
-            }), 401);
-        }
+            return (null, new ValidationResult([new ValidationFailure("Credentials", "IDNP sau parola incorectă.")]), 401);
 
-        // Load identity with role, permissions, and beneficiary
-        var identity = await _context.UserIdentities
+        // Load ALL identities for this user (multi-company support)
+        var identities = await _context.UserIdentities
             .Include(ui => ui.Role)
                 .ThenInclude(r => r.Permissions)
             .Include(ui => ui.Permissions)
                 .ThenInclude(up => up.Permission)
             .Include(ui => ui.Beneficiary)
-            .FirstOrDefaultAsync(ui => ui.UserId == user.Id, ct);
+            .Where(ui => ui.UserId == user.Id)
+            .ToListAsync(ct);
+
+        if (identities.Count == 0)
+            return (null, new ValidationResult([new ValidationFailure("Credentials", "IDNP sau parola incorectă.")]), 401);
+
+        // Find an active identity whose password matches
+        var identity = identities
+            .Where(ui => ui.Status == UserStatus.Active)
+            .FirstOrDefault(ui =>
+                !string.IsNullOrEmpty(ui.PasswordHash) &&
+                BCrypt.Net.BCrypt.Verify(request.Password, ui.PasswordHash));
 
         if (identity is null)
         {
-            return (null, new ValidationResult(new[]
-            {
-                new ValidationFailure("Credentials", "IDNP sau parola incorectă.")
-            }), 401);
+            // Check if any identity is blocked/inactive (different error message)
+            var anyActive = identities.Any(ui => ui.Status == UserStatus.Active);
+            if (!anyActive)
+                return (null, new ValidationResult([new ValidationFailure("Status", "Contul este blocat sau dezactivat.")]), 401);
+
+            return (null, new ValidationResult([new ValidationFailure("Credentials", "IDNP sau parola incorectă.")]), 401);
         }
 
-        // Check account status
-        if (identity.Status != UserStatus.Active)
-        {
-            return (null, new ValidationResult(new[]
-            {
-                new ValidationFailure("Status", "Contul este blocat sau dezactivat.")
-            }), 401);
-        }
-
-        // Verify password
-        if (string.IsNullOrEmpty(identity.PasswordHash) ||
-            !BCrypt.Net.BCrypt.Verify(request.Password, identity.PasswordHash))
-        {
-            return (null, new ValidationResult(new[]
-            {
-                new ValidationFailure("Credentials", "IDNP sau parola incorectă.")
-            }), 401);
-        }
-
-        // Collect permissions: role-level + user-level overrides
         var permissions = identity.Role.Permissions
             .Select(p => p.Key)
             .Union(identity.Permissions.Select(up => up.Permission.Key))
             .Distinct()
             .ToList();
 
-        // Generate tokens
         var accessToken = _tokenService.GenerateAccessToken(
             user.Id, user.Idnp, identity.Role.Key, permissions, identity.BeneficiaryId);
 
         var refreshToken = _tokenService.GenerateRefreshToken();
 
-        // Persist refresh token
-        identity.RefreshToken = refreshToken;
-        identity.RefreshTokenExpiresAt = DateTimeOffset.UtcNow.AddDays(7);
+        // Save refresh token on the matched identity (tracked query needed)
+        var trackedIdentity = await _context.UserIdentities
+            .FirstAsync(ui => ui.Id == identity.Id, ct);
+        trackedIdentity.RefreshToken = refreshToken;
+        trackedIdentity.RefreshTokenExpiresAt = DateTimeOffset.UtcNow.AddDays(7);
         await _context.SaveChangesAsync(ct);
 
         var userInfo = new UserInfoModel(
@@ -110,11 +98,18 @@ public sealed class LoginCommandHandler
             Permissions: permissions
         );
 
+        // Build available companies list from all active identities
+        var availableCompanies = identities
+            .Where(ui => ui.Status == UserStatus.Active && ui.BeneficiaryId.HasValue && ui.Beneficiary is not null)
+            .Select(ui => new CompanyInfo(ui.BeneficiaryId!.Value, ui.Beneficiary!.CompanyName, ui.Beneficiary.Idno))
+            .ToList();
+
         var response = new LoginResponse(
             Token: accessToken,
             RefreshToken: refreshToken,
             ExpiresAt: DateTimeOffset.UtcNow.AddHours(1),
-            User: userInfo
+            User: userInfo,
+            AvailableCompanies: availableCompanies
         );
 
         return (response, null, 200);

@@ -104,11 +104,24 @@ public sealed class RefreshTokenCommandHandler
             Permissions: permissions
         );
 
+        // Build available companies for this user
+        var allIdentities = await _context.UserIdentities
+            .Include(ui => ui.Beneficiary)
+            .Where(ui => ui.UserId == user.Id && ui.Status == Domain.Enums.UserStatus.Active && ui.BeneficiaryId.HasValue)
+            .AsNoTracking()
+            .ToListAsync(ct);
+
+        var availableCompanies = allIdentities
+            .Where(ui => ui.Beneficiary is not null)
+            .Select(ui => new CompanyInfo(ui.BeneficiaryId!.Value, ui.Beneficiary!.CompanyName, ui.Beneficiary.Idno))
+            .ToList();
+
         var response = new LoginResponse(
             Token: newAccessToken,
             RefreshToken: newRefreshToken,
             ExpiresAt: DateTimeOffset.UtcNow.AddMinutes(60),
-            User: userInfo
+            User: userInfo,
+            AvailableCompanies: availableCompanies
         );
 
         return (response, null, 200);

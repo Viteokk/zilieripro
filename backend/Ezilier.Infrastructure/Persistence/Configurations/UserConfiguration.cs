@@ -19,7 +19,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(x => x.Idnp);
         builder.HasIndex(x => x.Email);
 
-        builder.HasOne(x => x.Identity).WithOne(x => x.User).HasForeignKey<UserIdentity>(x => x.UserId);
+        builder.HasMany(x => x.Identities).WithOne(x => x.User).HasForeignKey(x => x.UserId);
     }
 }
 
@@ -32,7 +32,7 @@ public class UserIdentityConfiguration : IEntityTypeConfiguration<UserIdentity>
         builder.Property(x => x.RefreshToken).HasMaxLength(500);
         builder.Property(x => x.AssignedDistricts).HasMaxLength(1000);
 
-        builder.HasIndex(x => x.UserId).IsUnique();
+        builder.HasIndex(x => x.UserId);
 
         builder.HasOne(x => x.Role).WithMany(x => x.Users).HasForeignKey(x => x.RoleId);
         builder.HasOne(x => x.Beneficiary).WithMany(x => x.Users).HasForeignKey(x => x.BeneficiaryId);

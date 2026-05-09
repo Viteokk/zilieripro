@@ -74,6 +74,10 @@ export class ApiService {
     return this.post<LoginResponse>('/accounts/refresh', { refreshToken });
   }
 
+  switchCompany(beneficiaryId: string): Observable<LoginResponse> {
+    return this.post<LoginResponse>('/accounts/switch-company', { beneficiaryId });
+  }
+
   // --------------- Vouchers ---------------
 
   getVouchers(params?: Record<string, string | number | boolean>): Observable<PaginatedResult<VoucherTableItem>> {

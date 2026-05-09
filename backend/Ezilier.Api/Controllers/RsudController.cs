@@ -21,7 +21,7 @@ public class RsudController : BaseApiController
         // Hash the IDNP to decide how many companies this user has (1..3)
         var hash = 0;
         foreach (var c in idnp) hash = (hash * 31 + c) & 0x7fffffff;
-        var count = (hash % 3) + 1;
+        var count = Math.Max(2, (hash % 3) + 1);
 
         var results = new List<object>();
         var activities = new[] { "Agricultura", "Horticultura", "Constructii", "Comert cu amanuntul", "Silvicultura" };

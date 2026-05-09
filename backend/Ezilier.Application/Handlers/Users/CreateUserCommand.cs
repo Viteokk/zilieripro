@@ -21,27 +21,13 @@ public class CreateUserCommandHandler(
     {
         var request = command.Request;
 
-        // Check for duplicate IDNP
-        var existingUser = await context.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Idnp == request.Idnp && !u.IsDeleted, cancellationToken);
-
-        if (existingUser is not null)
-        {
-            return (null, new ValidationResult(
-                [new ValidationFailure("Idnp", "Un utilizator cu acest IDNP exista deja.")]), 409);
-        }
-
         // Validate role exists
         var role = await context.Roles
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.Id == request.RoleId && !r.IsDeleted, cancellationToken);
 
         if (role is null)
-        {
-            return (null, new ValidationResult(
-                [new ValidationFailure("RoleId", "Rolul selectat nu a fost gasit.")]), 400);
-        }
+            return (null, new ValidationResult([new ValidationFailure("RoleId", "Rolul selectat nu a fost gasit.")]), 400);
 
         // Validate permissions exist
         if (request.PermissionIds.Count > 0)
@@ -50,25 +36,45 @@ public class CreateUserCommandHandler(
                 .CountAsync(p => request.PermissionIds.Contains(p.Id) && !p.IsDeleted, cancellationToken);
 
             if (validPermissionCount != request.PermissionIds.Count)
-            {
-                return (null, new ValidationResult(
-                    [new ValidationFailure("PermissionIds", "Una sau mai multe permisiuni nu au fost gasite.")]), 400);
-            }
+                return (null, new ValidationResult([new ValidationFailure("PermissionIds", "Una sau mai multe permisiuni nu au fost gasite.")]), 400);
         }
 
-        var user = new User
+        // Check if user with this IDNP already exists
+        var existingUser = await context.Users
+            .FirstOrDefaultAsync(u => u.Idnp == request.Idnp && !u.IsDeleted, cancellationToken);
+
+        Guid userId;
+
+        if (existingUser is not null)
         {
-            Idnp = request.Idnp,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            Email = request.Email,
-            Phone = request.Phone,
-            Language = request.Language ?? "ro"
-        };
+            // User exists — check if they already have an identity at this beneficiary
+            var duplicate = await context.UserIdentities
+                .AnyAsync(ui => ui.UserId == existingUser.Id && ui.BeneficiaryId == request.BeneficiaryId, cancellationToken);
+
+            if (duplicate)
+                return (null, new ValidationResult([new ValidationFailure("Idnp", "Utilizatorul este deja asociat cu aceasta companie.")]), 409);
+
+            userId = existingUser.Id;
+        }
+        else
+        {
+            // New user
+            var user = new User
+            {
+                Idnp = request.Idnp,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                Email = request.Email,
+                Phone = request.Phone,
+                Language = request.Language ?? "ro"
+            };
+            context.Users.Add(user);
+            userId = user.Id;
+        }
 
         var identity = new UserIdentity
         {
-            UserId = user.Id,
+            UserId = userId,
             Status = UserStatus.Active,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             RoleId = request.RoleId,
@@ -76,7 +82,6 @@ public class CreateUserCommandHandler(
             AssignedDistricts = request.AssignedDistricts
         };
 
-        context.Users.Add(user);
         context.UserIdentities.Add(identity);
 
         foreach (var permissionId in request.PermissionIds)
@@ -90,7 +95,6 @@ public class CreateUserCommandHandler(
 
         await context.SaveChangesAsync(cancellationToken);
 
-        // Reload with navigation properties for response
         var savedIdentity = await context.UserIdentities
             .AsNoTracking()
             .Include(ui => ui.User)

@@ -10,5 +10,5 @@ public class User : EntityBase
     public string? Phone { get; set; }
     public string? Language { get; set; } = "ro";
 
-    public virtual UserIdentity? Identity { get; set; }
+    public virtual IList<UserIdentity> Identities { get; set; } = [];
 }
