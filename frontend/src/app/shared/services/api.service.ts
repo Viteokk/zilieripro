@@ -153,6 +153,10 @@ export class ApiService {
     return this.post<BeneficiaryModel>('/beneficiaries', req);
   }
 
+  linkUserToBeneficiary(beneficiaryId: string, idnp: string): Observable<void> {
+    return this.post<void>(`/beneficiaries/${beneficiaryId}/link-user`, { idnp });
+  }
+
   // --------------- Users ---------------
 
   getUsers(params?: Record<string, string | number | boolean>): Observable<PaginatedResult<UserTableItem>> {

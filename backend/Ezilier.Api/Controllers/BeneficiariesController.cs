@@ -35,4 +35,11 @@ public class BeneficiariesController : BaseApiController
         var (model, errors, status) = await Mediator.Send(new GetBeneficiaryQuery(id));
         return StatusCode(status, errors is not null ? errors : model);
     }
+
+    [HttpPost("{id:guid}/link-user")]
+    public async Task<IActionResult> LinkUser(Guid id, [FromBody] LinkUserRequest request)
+    {
+        var (success, errors, status) = await Mediator.Send(new LinkUserToBeneficiaryCommand(id, request.Idnp));
+        return StatusCode(status, errors is not null ? errors : new { success });
+    }
 }

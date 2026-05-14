@@ -34,3 +34,8 @@ public record CreateBeneficiaryRequest
     public string? Phone { get; init; }
     public string? Email { get; init; }
 }
+
+public record LinkUserRequest
+{
+    public string Idnp { get; init; } = string.Empty;
+}

@@ -203,6 +203,11 @@ const RO: Dict = {
   'admin.companies.created': 'Compania a fost creata.',
   'admin.companies.duplicate': 'Un beneficiar cu acest IDNO este deja inregistrat.',
   'admin.companies.empty': 'Nu au fost gasite companii.',
+  'admin.companies.linkUser': 'Asociaza utilizator',
+  'admin.companies.linkUser.idnp': 'IDNP utilizator',
+  'admin.companies.linkUser.success': 'Utilizatorul a fost asociat cu succes.',
+  'admin.companies.linkUser.notFound': 'Utilizatorul cu acest IDNP nu exista.',
+  'admin.companies.linkUser.duplicate': 'Utilizatorul este deja asociat cu aceasta companie.',
 
   // Login
   'login.title': 'eZilier',
@@ -398,6 +403,11 @@ const RU: Dict = {
   'admin.companies.created': 'Компания создана.',
   'admin.companies.duplicate': 'Бенефициар с таким IDNO уже зарегистрирован.',
   'admin.companies.empty': 'Компании не найдены.',
+  'admin.companies.linkUser': 'Привязать пользователя',
+  'admin.companies.linkUser.idnp': 'IDNP пользователя',
+  'admin.companies.linkUser.success': 'Пользователь успешно привязан.',
+  'admin.companies.linkUser.notFound': 'Пользователь с таким IDNP не существует.',
+  'admin.companies.linkUser.duplicate': 'Пользователь уже привязан к этой компании.',
 
   'login.title': 'eZilier',
   'login.subtitle': 'Система управления ваучерами для работников',
@@ -592,6 +602,11 @@ const EN: Dict = {
   'admin.companies.created': 'Company created.',
   'admin.companies.duplicate': 'A beneficiary with this IDNO is already registered.',
   'admin.companies.empty': 'No companies found.',
+  'admin.companies.linkUser': 'Link user',
+  'admin.companies.linkUser.idnp': 'User IDNP',
+  'admin.companies.linkUser.success': 'User linked successfully.',
+  'admin.companies.linkUser.notFound': 'No user found with this IDNP.',
+  'admin.companies.linkUser.duplicate': 'User is already linked to this company.',
 
   'login.title': 'eZilier',
   'login.subtitle': 'Voucher management system for day-workers',

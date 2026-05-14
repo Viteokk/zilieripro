@@ -111,11 +111,12 @@ import { BeneficiaryModel, CreateBeneficiaryRequest } from '../../../shared/mode
                   <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Lucrători</th>
                   <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Vouchere</th>
                   <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{{ i18n.t('field.createdAt') }}</th>
+                  <th class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">{{ i18n.t('common.actions') }}</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-50">
+              <tbody>
                 @for (company of companies(); track company.id) {
-                  <tr class="hover:bg-gray-50 transition-colors">
+                  <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                     <td class="px-4 py-3 font-medium text-gray-800">{{ company.companyName }}</td>
                     <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ company.idno }}</td>
                     <td class="px-4 py-3 text-gray-500">{{ company.district ?? '—' }}</td>
@@ -123,7 +124,47 @@ import { BeneficiaryModel, CreateBeneficiaryRequest } from '../../../shared/mode
                     <td class="px-4 py-3 text-center text-gray-500">{{ company.workerCount ?? 0 }}</td>
                     <td class="px-4 py-3 text-center text-gray-500">{{ company.voucherCount ?? 0 }}</td>
                     <td class="px-4 py-3 text-gray-400 text-xs">{{ company.createdAt | date:'dd.MM.yyyy' }}</td>
+                    <td class="px-4 py-3 text-center">
+                      <button (click)="openLink(company.id)"
+                        class="px-2.5 py-1 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg font-medium transition-colors whitespace-nowrap">
+                        {{ i18n.t('admin.companies.linkUser') }}
+                      </button>
+                    </td>
                   </tr>
+                  @if (linkTarget() === company.id) {
+                    <tr class="bg-indigo-50/50 border-b border-indigo-100">
+                      <td colspan="8" class="px-4 py-3">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                          <span class="text-xs font-medium text-indigo-700 shrink-0">{{ i18n.t('admin.companies.linkUser') }}:</span>
+                          <input
+                            type="text"
+                            [ngModel]="linkIdnp()"
+                            (ngModelChange)="linkIdnp.set($event)"
+                            (keyup.enter)="submitLink()"
+                            maxlength="13"
+                            placeholder="{{ i18n.t('admin.companies.linkUser.idnp') }} (13 cifre)"
+                            class="flex-1 min-w-0 px-3 py-1.5 text-sm border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono bg-white"
+                          />
+                          @if (linkError()) {
+                            <span class="text-xs text-red-600 shrink-0">{{ linkError() }}</span>
+                          }
+                          @if (linkSuccessMsg()) {
+                            <span class="text-xs text-green-600 shrink-0">{{ linkSuccessMsg() }}</span>
+                          }
+                          <div class="flex gap-2 shrink-0">
+                            <button (click)="submitLink()" [disabled]="linkSubmitting()"
+                              class="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg font-medium transition-colors">
+                              {{ linkSubmitting() ? i18n.t('common.processing') : i18n.t('action.save') }}
+                            </button>
+                            <button (click)="closeLink()"
+                              class="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors">
+                              {{ i18n.t('action.cancel') }}
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  }
                 }
               </tbody>
             </table>
@@ -161,6 +202,12 @@ export class CompanyManagementComponent implements OnInit {
   protected readonly submitting = signal(false);
   protected readonly formError = signal<string | null>(null);
   protected readonly successMsg = signal<string | null>(null);
+
+  protected readonly linkTarget = signal<string | null>(null);
+  protected readonly linkIdnp = signal('');
+  protected readonly linkError = signal<string | null>(null);
+  protected readonly linkSuccessMsg = signal<string | null>(null);
+  protected readonly linkSubmitting = signal(false);
 
   protected form: CreateBeneficiaryRequest = { companyName: '', idno: '' };
 
@@ -237,6 +284,48 @@ export class CompanyManagementComponent implements OnInit {
       }
     } finally {
       this.submitting.set(false);
+    }
+  }
+
+  protected openLink(companyId: string): void {
+    this.linkTarget.set(companyId);
+    this.linkIdnp.set('');
+    this.linkError.set(null);
+    this.linkSuccessMsg.set(null);
+  }
+
+  protected closeLink(): void {
+    this.linkTarget.set(null);
+    this.linkError.set(null);
+    this.linkSuccessMsg.set(null);
+  }
+
+  protected async submitLink(): Promise<void> {
+    const idnp = this.linkIdnp().trim();
+    const companyId = this.linkTarget();
+    if (!companyId) return;
+    if (idnp.length !== 13) {
+      this.linkError.set('IDNP trebuie să aibă exact 13 cifre.');
+      return;
+    }
+    this.linkError.set(null);
+    this.linkSubmitting.set(true);
+    try {
+      await firstValueFrom(this.api.linkUserToBeneficiary(companyId, idnp));
+      this.linkSuccessMsg.set(this.i18n.t('admin.companies.linkUser.success'));
+      this.linkIdnp.set('');
+      setTimeout(() => this.closeLink(), 2500);
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status === 404) {
+        this.linkError.set(this.i18n.t('admin.companies.linkUser.notFound'));
+      } else if (status === 409) {
+        this.linkError.set(this.i18n.t('admin.companies.linkUser.duplicate'));
+      } else {
+        this.linkError.set('Eroare la asociere. Reîncercați.');
+      }
+    } finally {
+      this.linkSubmitting.set(false);
     }
   }
 
