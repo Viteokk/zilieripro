@@ -304,14 +304,14 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
                         </a>
                         @if (!isInspector()) {
                         <a
-                          [routerLink]="['/vouchers', voucher.id]"
+                          [routerLink]="['/vouchers', voucher.id, 'edit']"
                           class="relative flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none hover:bg-accent hover:text-accent-foreground transition-colors"
                           (click)="closeMenu()"
                         >
                           <svg class="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.772-8.772z" />
                           </svg>
-                          Print
+                          Editează
                         </a>
                         }
                         @if (!isInspector()) {

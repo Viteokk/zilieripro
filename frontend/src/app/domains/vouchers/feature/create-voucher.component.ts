@@ -70,29 +70,103 @@ interface VoucherWorkerRow {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div class="space-y-2">
               <label class="text-sm font-medium leading-none">{{ "field.district" | t }} <span class="text-destructive">*</span></label>
-              <select formControlName="workDistrict"
-                class="flex h-10 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50">
-                <option value="">Selectati raionul</option>
-                <option value="Chisinau">Chisinau</option>
-                <option value="Balti">Balti</option>
-                <option value="Cahul">Cahul</option>
-                <option value="Orhei">Orhei</option>
-                <option value="Ungheni">Ungheni</option>
-                <option value="Soroca">Soroca</option>
-                <option value="Edinet">Edinet</option>
-                <option value="Comrat">Comrat</option>
-              </select>
+              <div class="relative">
+                <button type="button"
+                  (click)="districtDropdownOpen.update(v => !v); $event.stopPropagation()"
+                  [class]="'flex h-10 w-full items-center rounded-md border bg-white px-3 py-1 text-sm shadow-xs outline-none text-left ' + (voucherForm.get('workDistrict')?.invalid && voucherForm.get('workDistrict')?.touched ? 'border-destructive' : 'border-input')">
+                  <span class="block flex-1 truncate" [class.text-muted-foreground]="!selectedDistrict()">
+                    {{ selectedDistrict() || 'Selectati raionul' }}
+                  </span>
+                  <svg class="ml-2 h-3 w-3 flex-shrink-0 text-foreground/60" viewBox="0 0 12 12" fill="none">
+                    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                @if (districtDropdownOpen()) {
+                  <div class="fixed inset-0 z-[40]" (click)="districtDropdownOpen.set(false)"></div>
+                  <div class="absolute left-0 right-0 top-full mt-1 z-[50] max-h-64 overflow-hidden flex flex-col rounded-md border border-foreground/10 bg-white shadow-lg"
+                       (click)="$event.stopPropagation()">
+                    <div class="p-2 border-b border-foreground/10">
+                      <div class="relative">
+                        <svg class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="text" placeholder="Cauta raion..."
+                          [value]="districtSearch()"
+                          (input)="districtSearch.set($any($event.target).value)"
+                          class="w-full h-8 pl-8 pr-2 text-sm border border-input rounded outline-none focus-visible:border-ring" />
+                      </div>
+                    </div>
+                    <div class="overflow-y-auto flex-1">
+                      @if (filteredDistricts().length === 0) {
+                        <div class="px-3 py-4 text-sm text-muted-foreground text-center">Niciun raion gasit</div>
+                      } @else {
+                        @for (d of filteredDistricts(); track d) {
+                          <div class="flex items-center gap-2 px-3 py-2 hover:bg-accent cursor-pointer text-sm"
+                               (click)="selectDistrict(d)">
+                            @if (selectedDistrict() === d) {
+                              <svg class="h-3.5 w-3.5 flex-shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            } @else {
+                              <span class="h-3.5 w-3.5 flex-shrink-0"></span>
+                            }
+                            {{ d }}
+                          </div>
+                        }
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
             </div>
 
             <div class="space-y-2">
               <label class="text-sm font-medium leading-none">{{ "field.locality" | t }} <span class="text-destructive">*</span></label>
-              <select formControlName="workLocality"
-                class="flex h-10 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50">
-                <option value="">Selectati localitatea</option>
-                @for (loc of localitiesForDistrict(); track loc) {
-                  <option [value]="loc">{{ loc }}</option>
+              <div class="relative">
+                <button type="button"
+                  [disabled]="!selectedDistrict()"
+                  (click)="localityDropdownOpen.update(v => !v); $event.stopPropagation()"
+                  [class]="'flex h-10 w-full items-center rounded-md border bg-white px-3 py-1 text-sm shadow-xs outline-none text-left ' + (!selectedDistrict() ? 'opacity-50 cursor-not-allowed ' : '') + (voucherForm.get('workLocality')?.invalid && voucherForm.get('workLocality')?.touched ? 'border-destructive' : 'border-input')">
+                  <span class="block flex-1 truncate" [class.text-muted-foreground]="!selectedLocalityValue()">
+                    {{ selectedLocalityValue() || (!selectedDistrict() ? 'Selectati mai intai raionul' : 'Selectati localitatea') }}
+                  </span>
+                  <svg class="ml-2 h-3 w-3 flex-shrink-0 text-foreground/60" viewBox="0 0 12 12" fill="none">
+                    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                @if (localityDropdownOpen() && selectedDistrict()) {
+                  <div class="fixed inset-0 z-[40]" (click)="localityDropdownOpen.set(false)"></div>
+                  <div class="absolute left-0 right-0 top-full mt-1 z-[50] max-h-64 overflow-hidden flex flex-col rounded-md border border-foreground/10 bg-white shadow-lg"
+                       (click)="$event.stopPropagation()">
+                    <div class="p-2 border-b border-foreground/10">
+                      <div class="relative">
+                        <svg class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="text" placeholder="Cauta localitate..."
+                          [value]="localitySearch()"
+                          (input)="localitySearch.set($any($event.target).value)"
+                          class="w-full h-8 pl-8 pr-2 text-sm border border-input rounded outline-none focus-visible:border-ring" />
+                      </div>
+                    </div>
+                    <div class="overflow-y-auto flex-1">
+                      @if (filteredLocalities().length === 0) {
+                        <div class="px-3 py-4 text-sm text-muted-foreground text-center">Nicio localitate gasita</div>
+                      } @else {
+                        @for (loc of filteredLocalities(); track loc) {
+                          <div class="flex items-center gap-2 px-3 py-2 hover:bg-accent cursor-pointer text-sm"
+                               (click)="selectLocality(loc)">
+                            @if (selectedLocalityValue() === loc) {
+                              <svg class="h-3.5 w-3.5 flex-shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            } @else {
+                              <span class="h-3.5 w-3.5 flex-shrink-0"></span>
+                            }
+                            {{ loc }}
+                          </div>
+                        }
+                      }
+                    </div>
+                  </div>
                 }
-              </select>
+              </div>
             </div>
           </div>
 
@@ -105,13 +179,52 @@ interface VoucherWorkerRow {
             </div>
             <div class="space-y-2">
               <label class="text-sm font-medium leading-none">Activitatea realizata <span class="text-destructive">*</span></label>
-              <select formControlName="activityType"
-                class="flex h-10 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50">
-                <option value="">Selectati activitatea</option>
-                @for (a of activityTypes(); track a.id) {
-                  <option [value]="a.code">{{ a.titleRo }}</option>
+              <div class="relative">
+                <button type="button"
+                  (click)="activityDropdownOpen.update(v => !v); $event.stopPropagation()"
+                  [class]="'flex h-10 w-full items-center rounded-md border bg-white px-3 py-1 text-sm shadow-xs outline-none text-left ' + (voucherForm.get('activityType')?.invalid && voucherForm.get('activityType')?.touched ? 'border-destructive' : 'border-input')">
+                  <span class="block flex-1 truncate" [class.text-muted-foreground]="!selectedActivityCode()">
+                    {{ selectedActivityLabel() || 'Selectati activitatea' }}
+                  </span>
+                  <svg class="ml-2 h-3 w-3 flex-shrink-0 text-foreground/60" viewBox="0 0 12 12" fill="none">
+                    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                @if (activityDropdownOpen()) {
+                  <div class="fixed inset-0 z-[40]" (click)="activityDropdownOpen.set(false)"></div>
+                  <div class="absolute left-0 right-0 top-full mt-1 z-[50] max-h-72 overflow-hidden flex flex-col rounded-md border border-foreground/10 bg-white shadow-lg"
+                       (click)="$event.stopPropagation()">
+                    <div class="p-2 border-b border-foreground/10">
+                      <div class="relative">
+                        <svg class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="text" placeholder="Cauta activitate..."
+                          [value]="activitySearch()"
+                          (input)="activitySearch.set($any($event.target).value)"
+                          class="w-full h-8 pl-8 pr-2 text-sm border border-input rounded outline-none focus-visible:border-ring" />
+                      </div>
+                    </div>
+                    <div class="overflow-y-auto flex-1">
+                      @if (filteredActivityTypes().length === 0) {
+                        <div class="px-3 py-4 text-sm text-muted-foreground text-center">Nicio activitate gasita</div>
+                      } @else {
+                        @for (a of filteredActivityTypes(); track a.id) {
+                          <div class="flex items-center gap-2 px-3 py-2 hover:bg-accent cursor-pointer text-sm"
+                               (click)="selectActivity(a)">
+                            @if (selectedActivityCode() === a.code) {
+                              <svg class="h-3.5 w-3.5 flex-shrink-0 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            } @else {
+                              <span class="h-3.5 w-3.5 flex-shrink-0"></span>
+                            }
+                            <span>{{ a.titleRo }}</span>
+                          </div>
+                        }
+                      }
+                    </div>
+                  </div>
                 }
-              </select>
+              </div>
             </div>
           </div>
         </form>
@@ -419,6 +532,16 @@ export class CreateVoucherComponent implements OnInit {
 
   protected readonly activityTypes = signal<NomenclatorModel[]>([]);
 
+  // Searchable dropdowns
+  protected readonly activitySearch = signal('');
+  protected readonly activityDropdownOpen = signal(false);
+  protected readonly selectedActivityCode = signal('');
+  protected readonly districtSearch = signal('');
+  protected readonly districtDropdownOpen = signal(false);
+  protected readonly localitySearch = signal('');
+  protected readonly localityDropdownOpen = signal(false);
+  protected readonly selectedLocalityValue = signal('');
+
   protected readonly submitting = signal(false);
   protected readonly errorMessage = signal('');
   protected readonly createdSummary = signal<VoucherCreatedSummary | null>(null);
@@ -456,6 +579,26 @@ export class CreateVoucherComponent implements OnInit {
   protected readonly localitiesForDistrict = computed(() => {
     const d = this.selectedDistrict();
     return d ? (this.districtLocalities[d] || []) : [];
+  });
+
+  protected readonly selectedActivityLabel = computed(() => {
+    const code = this.selectedActivityCode();
+    return code ? (this.activityTypes().find(a => a.code === code)?.titleRo ?? '') : '';
+  });
+  protected readonly filteredActivityTypes = computed(() => {
+    const term = this.activitySearch().toLowerCase();
+    const list = this.activityTypes();
+    return term ? list.filter(a => a.titleRo.toLowerCase().includes(term) || a.code.toLowerCase().includes(term)) : list;
+  });
+  protected readonly districtList = ['Chisinau', 'Balti', 'Cahul', 'Orhei', 'Ungheni', 'Soroca', 'Edinet', 'Comrat'];
+  protected readonly filteredDistricts = computed(() => {
+    const term = this.districtSearch().toLowerCase();
+    return term ? this.districtList.filter(d => d.toLowerCase().includes(term)) : this.districtList;
+  });
+  protected readonly filteredLocalities = computed(() => {
+    const term = this.localitySearch().toLowerCase();
+    const list = this.localitiesForDistrict();
+    return term ? list.filter(l => l.toLowerCase().includes(term)) : list;
   });
 
   protected readonly filteredAvailableWorkers = computed(() => {
@@ -512,6 +655,7 @@ export class CreateVoucherComponent implements OnInit {
         const currentLoc = v.workLocality || '';
         if (currentLoc && !this.localitiesForDistrict().includes(currentLoc)) {
           this.voucherForm.patchValue({ workLocality: '' }, { emitEvent: false });
+          this.selectedLocalityValue.set('');
         }
       }
       if (newHours !== this.prevDefaultHours || newRem !== this.prevDefaultRemuneration) {
@@ -543,6 +687,28 @@ export class CreateVoucherComponent implements OnInit {
     this.api.getNomenclators('activity_types').subscribe({
       next: (list) => this.activityTypes.set((list ?? []).filter((n) => n.isActive)),
     });
+  }
+
+  protected selectActivity(a: NomenclatorModel): void {
+    this.voucherForm.patchValue({ activityType: a.code });
+    this.selectedActivityCode.set(a.code);
+    this.activityDropdownOpen.set(false);
+    this.activitySearch.set('');
+  }
+
+  protected selectDistrict(district: string): void {
+    this.voucherForm.patchValue({ workDistrict: district, workLocality: '' });
+    this.selectedDistrict.set(district);
+    this.selectedLocalityValue.set('');
+    this.districtDropdownOpen.set(false);
+    this.districtSearch.set('');
+  }
+
+  protected selectLocality(loc: string): void {
+    this.voucherForm.patchValue({ workLocality: loc });
+    this.selectedLocalityValue.set(loc);
+    this.localityDropdownOpen.set(false);
+    this.localitySearch.set('');
   }
 
   protected openPanel(p: 'add' | 'csv'): void {
@@ -805,6 +971,8 @@ export class CreateVoucherComponent implements OnInit {
     this.createdSummary.set(null);
     this.rows.set([]);
     this.panel.set(null);
+    this.selectedActivityCode.set('');
+    this.selectedLocalityValue.set('');
     this.voucherForm.reset({
       workDate: new Date().toISOString().split('T')[0],
       defaultHours: 8,
