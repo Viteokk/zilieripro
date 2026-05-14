@@ -195,3 +195,15 @@ export interface VoucherActivityItem {
   timestamp: string;
   changes?: string[];
 }
+
+export interface CreateBeneficiaryRequest {
+  companyName: string;
+  idno: string;
+  legalForm?: string;
+  activityType?: string;
+  address?: string;
+  district?: string;
+  locality?: string;
+  phone?: string;
+  email?: string;
+}

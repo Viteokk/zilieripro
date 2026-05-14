@@ -8,6 +8,20 @@ namespace Ezilier.Api.Controllers;
 [Authorize]
 public class BeneficiariesController : BaseApiController
 {
+    [HttpGet]
+    public async Task<IActionResult> List([FromQuery] string? search, [FromQuery] int offset = 0, [FromQuery] int limit = 25)
+    {
+        var result = await Mediator.Send(new GetBeneficiariesQuery(search, offset, limit));
+        return Ok(result);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateBeneficiaryRequest request)
+    {
+        var (model, errors, status) = await Mediator.Send(new CreateBeneficiaryCommand(request));
+        return StatusCode(status, errors is not null ? errors : model);
+    }
+
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterBeneficiaryRequest request)
     {

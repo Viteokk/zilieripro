@@ -172,6 +172,7 @@ export class SidebarLayoutComponent {
 
   readonly adminNav: NavItem[] = [
     { label: 'nav.users', route: '/admin/users', icon: '\u{1F464}' },
+    { label: 'nav.companies', route: '/admin/companies', icon: '\u{1F3E2}' },
     { label: 'nav.params', route: '/admin/params', icon: '\u{2699}\u{FE0F}' },
     { label: 'nav.nomenclators', route: '/admin/nomenclators', icon: '\u{1F4D6}' },
     { label: 'nav.audit', route: '/admin/audit', icon: '\u{1F50D}' },

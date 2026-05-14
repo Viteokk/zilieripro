@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   BeneficiaryModel,
+  CreateBeneficiaryRequest,
   CreateVoucherRequest,
   CreateWorkerRequest,
   LoginResponse,
@@ -146,6 +147,10 @@ export class ApiService {
 
   getBeneficiary(id: string): Observable<BeneficiaryModel> {
     return this.get<BeneficiaryModel>(`/beneficiaries/${id}`);
+  }
+
+  createBeneficiary(req: CreateBeneficiaryRequest): Observable<BeneficiaryModel> {
+    return this.post<BeneficiaryModel>('/beneficiaries', req);
   }
 
   // --------------- Users ---------------
