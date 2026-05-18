@@ -129,6 +129,12 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
               <dt>IDNP</dt><dd>{{ v.worker.idnp | maskIdnp }}</dd>
               <dt>Numele</dt><dd>{{ v.worker.lastName }}</dd>
               <dt>Prenumele</dt><dd>{{ v.worker.firstName }}</dd>
+              @if ((v.workerPhone ?? v.worker?.phone); as phone) {
+                <dt>Telefon</dt><dd>{{ phone }}</dd>
+              }
+              @if ((v.workerEmail ?? v.worker?.email); as email) {
+                <dt>Email</dt><dd>{{ email }}</dd>
+              }
             </dl>
           </section>
 

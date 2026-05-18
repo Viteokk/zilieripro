@@ -77,6 +77,14 @@ import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
               <dd class="font-semibold uppercase">{{ v.worker.lastName }}</dd>
               <dt class="text-muted-foreground">Prenumele</dt>
               <dd class="font-semibold">{{ v.worker.firstName }}</dd>
+              @if ((v.workerPhone ?? v.worker?.phone); as phone) {
+                <dt class="text-muted-foreground">Telefon</dt>
+                <dd class="font-semibold">{{ phone }}</dd>
+              }
+              @if ((v.workerEmail ?? v.worker?.email); as email) {
+                <dt class="text-muted-foreground">Email</dt>
+                <dd class="font-semibold">{{ email }}</dd>
+              }
             </dl>
           </section>
 

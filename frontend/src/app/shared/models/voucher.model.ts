@@ -15,6 +15,8 @@ export interface VoucherTableItem {
   beneficiaryName?: string;
   workDistrict: string;
   createdAt: string;
+  workerPhone?: string;
+  workerEmail?: string;
 }
 
 export interface VoucherDetail {
@@ -44,6 +46,8 @@ export interface VoucherDetail {
   createdAt: string;
   signatureDataUrl?: string;
   signedAt?: string;
+  workerPhone?: string;
+  workerEmail?: string;
   worker: WorkerModel;
   beneficiary: BeneficiaryModel;
 }

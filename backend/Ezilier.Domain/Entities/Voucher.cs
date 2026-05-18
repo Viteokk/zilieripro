@@ -41,6 +41,10 @@ public class Voucher : EntityBase
     public string? SignatureDataUrl { get; set; }
     public DateTimeOffset? SignedAt { get; set; }
 
+    // Snapshot of worker contact details at voucher creation time.
+    public string? WorkerPhone { get; set; }
+    public string? WorkerEmail { get; set; }
+
     public virtual Beneficiary Beneficiary { get; set; } = null!;
     public virtual Worker Worker { get; set; } = null!;
 }

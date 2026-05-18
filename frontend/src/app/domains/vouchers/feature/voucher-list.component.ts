@@ -30,12 +30,12 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
             </svg>
             {{ 'action.exportCsv' | t }}
           </button>
-          <button type="button" (click)="openRegisterPicker()"
-            class="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium shadow-xs transition-all hover:bg-accent hover:text-accent-foreground">
+          <button type="button" (click)="confirmExecuteOpen.set(true)" [disabled]="bulkExecuteRunning()"
+            class="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium shadow-xs transition-all hover:bg-accent hover:text-accent-foreground disabled:opacity-50">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
-            {{ 'voucher.list.registerBtn' | t }}
+            Execută Activ
           </button>
           <a routerLink="/reports/ipc21"
             class="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium shadow-xs transition-all hover:bg-accent hover:text-accent-foreground">
@@ -270,21 +270,26 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
         </div>
       }
 
-      <!-- Register date picker modal -->
-      @if (registerPickerOpen()) {
-        <div class="fixed inset-0 z-[200] flex items-center justify-center bg-black/40" (click)="closeRegisterPicker()">
-          <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6" (click)="$event.stopPropagation()">
-            <h3 class="text-lg font-semibold text-foreground mb-1">{{ 'register.title' | t }}</h3>
-            <p class="text-sm text-muted-foreground mb-4">{{ 'register.subtitle' | t }}</p>
-            <label class="block text-sm font-medium mb-2">{{ 'register.activityDate' | t }}</label>
-            <input type="date" [value]="registerDate()" (input)="registerDate.set($any($event.target).value)"
-              class="flex h-10 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50" />
-            <div class="mt-5 flex justify-end gap-2">
-              <button type="button" (click)="closeRegisterPicker()"
-                class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium">{{ 'action.cancel' | t }}</button>
-              <button type="button" (click)="openRegister()" [disabled]="!registerDate()"
-                class="inline-flex h-9 items-center justify-center rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium disabled:opacity-50">
-                {{ 'register.generate' | t }}
+      @if (confirmExecuteOpen()) {
+        <div class="fixed inset-0 z-[200] flex items-center justify-center bg-black/40"
+             (click)="confirmExecuteOpen.set(false)">
+          <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6"
+               (click)="$event.stopPropagation()">
+            <h3 class="text-lg font-semibold text-foreground mb-2">Execuție vouchere active</h3>
+            <p class="text-sm text-muted-foreground mb-1">
+              Toate voucherele la ziua de azi vor fi executate.
+            </p>
+            <p class="text-sm font-medium text-foreground mb-5">
+              Sunteți siguri de acțiunea dată? Verificați corectitudinea datelor.
+            </p>
+            <div class="flex justify-end gap-2">
+              <button type="button" (click)="confirmExecuteOpen.set(false)"
+                class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium">
+                Anulează
+              </button>
+              <button type="button" (click)="confirmExecuteOpen.set(false); doBulkExecuteActiv()"
+                class="inline-flex h-9 items-center justify-center rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium">
+                Execută
               </button>
             </div>
           </div>
@@ -610,6 +615,8 @@ export class VoucherListComponent implements OnInit {
   // Bulk selection
   protected readonly selected = signal<Set<string>>(new Set<string>());
   protected readonly bulkRunning = signal(false);
+  protected readonly bulkExecuteRunning = signal(false);
+  protected readonly confirmExecuteOpen = signal(false);
 
   protected readonly allSelected = computed(() => {
     const ids = this.vouchers().map((v) => v.id);
@@ -669,6 +676,21 @@ export class VoucherListComponent implements OnInit {
     });
   }
 
+  protected doBulkExecuteActiv(): void {
+    const activIds = this.vouchers()
+      .filter(v => v.status === 'Activ')
+      .map(v => v.id);
+    if (activIds.length === 0) return;
+    this.bulkExecuteRunning.set(true);
+    let pending = activIds.length;
+    activIds.forEach(id => {
+      this.voucherDataService.executeVoucher(id).subscribe({
+        next: () => { if (--pending === 0) { this.bulkExecuteRunning.set(false); this.loadVouchers(); } },
+        error: () => { if (--pending === 0) { this.bulkExecuteRunning.set(false); this.loadVouchers(); } },
+      });
+    });
+  }
+
   protected exportCsv(): void {
     const rows = this.vouchers();
     const header = ['Cod', 'Lucrator', 'IDNP', 'Raion', 'Statut', 'Ore', 'Remunerare neta', 'Remunerare bruta', 'Data lucru'];
@@ -692,21 +714,6 @@ export class VoucherListComponent implements OnInit {
     a.download = `vouchere-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-  }
-
-  protected readonly registerPickerOpen = signal(false);
-  protected readonly registerDate = signal(new Date().toISOString().split('T')[0]);
-
-  protected openRegisterPicker(): void {
-    this.registerPickerOpen.set(true);
-  }
-  protected closeRegisterPicker(): void {
-    this.registerPickerOpen.set(false);
-  }
-  protected openRegister(): void {
-    const date = this.registerDate();
-    this.registerPickerOpen.set(false);
-    this.router.navigate(['/vouchers/register'], { queryParams: { date } });
   }
 
   protected readonly currentPage = computed(() => {

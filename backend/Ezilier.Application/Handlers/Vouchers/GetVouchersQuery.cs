@@ -118,7 +118,9 @@ public class GetVouchersQueryHandler(
                 WorkerFullName = v.Worker.FirstName + " " + v.Worker.LastName,
                 BeneficiaryName = v.Beneficiary != null ? v.Beneficiary.CompanyName : string.Empty,
                 WorkDistrict = v.WorkDistrict,
-                CreatedAt = v.CreatedAt
+                CreatedAt = v.CreatedAt,
+                WorkerPhone = v.WorkerPhone,
+                WorkerEmail = v.WorkerEmail
             })
             .ToListAsync(cancellationToken);
 

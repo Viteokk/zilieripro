@@ -154,6 +154,8 @@ public class CreateVouchersCommandHandler(
                 RspValidated = rspResult.IsValid,
                 Art5Alin1LitB = request.Art5Alin1LitB,
                 Art5Alin1LitG = request.Art5Alin1LitG,
+                WorkerPhone = worker.Phone,
+                WorkerEmail = worker.Email,
                 Worker = worker
             };
 

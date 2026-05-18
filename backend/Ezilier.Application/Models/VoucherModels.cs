@@ -64,6 +64,8 @@ public record VoucherTableItem
     public string BeneficiaryName { get; init; } = string.Empty;
     public string WorkDistrict { get; init; } = string.Empty;
     public DateTimeOffset CreatedAt { get; init; }
+    public string? WorkerPhone { get; init; }
+    public string? WorkerEmail { get; init; }
 }
 
 public record VoucherDetailModel
@@ -94,6 +96,8 @@ public record VoucherDetailModel
     public DateTimeOffset CreatedAt { get; init; }
     public string? SignatureDataUrl { get; init; }
     public DateTimeOffset? SignedAt { get; init; }
+    public string? WorkerPhone { get; init; }
+    public string? WorkerEmail { get; init; }
 
     public WorkerModel Worker { get; init; } = null!;
     public BeneficiaryModel Beneficiary { get; init; } = null!;
