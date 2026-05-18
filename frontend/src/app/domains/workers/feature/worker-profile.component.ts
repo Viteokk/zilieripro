@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { StatusBadgeComponent } from '../../../shared/ui/components/status-badge.component';
 import { WorkerDataService } from '../data/worker-data.service';
 import { VoucherTableItem, WorkerModel } from '../../../shared/models/voucher.model';
@@ -41,12 +41,6 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
           <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
             <div class="flex flex-wrap items-center gap-3">
               <h1 class="text-3xl font-bold tracking-tight text-foreground">{{ w.lastName }} {{ w.firstName }}</h1>
-              <span class="inline-flex items-center gap-1.5 rounded-full border border-foreground/10 px-2.5 py-0.5 text-xs font-medium">
-                <span class="inline-block size-2 rounded-full"
-                  [class.bg-success]="w.isActive"
-                  [class.bg-muted-foreground]="!w.isActive"></span>
-                {{ w.isActive ? 'Activ' : 'Inactiv' }}
-              </span>
             </div>
             @if (!isInspector()) {
               <div class="flex items-center gap-2">
@@ -57,12 +51,12 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
                   </svg>
                   Editare
                 </button>
-                <button type="button" (click)="onToggleStart()"
-                  [class]="'inline-flex h-9 items-center justify-center gap-2 rounded-md px-4 text-sm font-medium transition-colors ' + (w.isActive ? 'border border-destructive/30 text-destructive hover:bg-destructive/10' : 'border border-success/30 text-success hover:bg-success/10')">
+                <button type="button" (click)="onDelete()"
+                  class="inline-flex h-9 items-center gap-2 rounded-md border border-destructive text-destructive px-4 text-sm font-medium hover:bg-destructive/10 transition-colors">
                   <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.69 14a6.9 6.9 0 0 0 .31-2V5l-8-3-3.16 1.18M4.73 4.73 4 5v7c0 6 8 10 8 10a20.29 20.29 0 0 0 5.62-4.38M1 1l22 22" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
-                  {{ w.isActive ? 'Dezactivare' : 'Activare' }}
+                  Sterge
                 </button>
               </div>
             }
@@ -178,17 +172,15 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
           <app-worker-edit [worker]="w" (closed)="onEditClosed()" (saved)="onEditSaved($event)" />
         }
 
-        @if (toggling()) {
+        @if (deleting()) {
           <app-confirm-dialog
-            [title]="w.isActive ? 'Dezactivare lucrator' : 'Activare lucrator'"
-            [message]="w.isActive
-              ? 'Sigur dezactivati lucratorul ' + w.lastName + ' ' + w.firstName + '? Nu se vor mai putea emite voucher-e noi.'
-              : 'Sigur activati lucratorul ' + w.lastName + ' ' + w.firstName + '?'"
-            [confirmText]="w.isActive ? 'Dezactiveaza' : 'Activeaza'"
-            [confirmVariant]="w.isActive ? 'destructive' : 'primary'"
-            [submitting]="togglingSubmitting()"
-            (confirmed)="onToggleConfirmed()"
-            (cancelled)="onToggleCancelled()" />
+            title="Sterge lucrator"
+            [message]="'Sigur stergi lucratorul ' + w.firstName + ' ' + w.lastName + '? Actiunea este ireversibila.'"
+            confirmText="Sterge"
+            confirmVariant="destructive"
+            [submitting]="deletingSubmitting()"
+            (confirmed)="onDeleteConfirmed()"
+            (cancelled)="deleting.set(false)" />
         }
       }
 
@@ -202,6 +194,7 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
 })
 export class WorkerProfileComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly workerDataService = inject(WorkerDataService);
   private readonly auth = inject(AuthStore);
 
@@ -211,8 +204,8 @@ export class WorkerProfileComponent implements OnInit {
   protected readonly isInspector = computed(() => this.auth.roleType() === 'Inspector');
 
   protected readonly editing = signal<boolean>(false);
-  protected readonly toggling = signal<boolean>(false);
-  protected readonly togglingSubmitting = signal<boolean>(false);
+  protected readonly deleting = signal<boolean>(false);
+  protected readonly deletingSubmitting = signal<boolean>(false);
   protected readonly toastMessage = signal<string>('');
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -230,31 +223,24 @@ export class WorkerProfileComponent implements OnInit {
     this.flashToast('Lucrator actualizat');
   }
 
-  protected onToggleStart(): void {
-    this.toggling.set(true);
+  protected onDelete(): void {
+    this.deleting.set(true);
   }
 
-  protected onToggleCancelled(): void {
-    if (this.togglingSubmitting()) return;
-    this.toggling.set(false);
-  }
-
-  protected onToggleConfirmed(): void {
+  protected onDeleteConfirmed(): void {
     const w = this.worker();
     if (!w) return;
-    this.togglingSubmitting.set(true);
-    const nextActive = !w.isActive;
-    this.workerDataService.updateStatus(w.id, nextActive).subscribe({
-      next: (updated) => {
-        this.togglingSubmitting.set(false);
-        this.toggling.set(false);
-        this.worker.set(updated);
-        this.flashToast(nextActive ? 'Lucrator activat' : 'Lucrator dezactivat');
+    this.deletingSubmitting.set(true);
+    this.workerDataService.delete(w.id).subscribe({
+      next: () => {
+        this.deletingSubmitting.set(false);
+        this.deleting.set(false);
+        this.router.navigate(['/workers']);
       },
       error: () => {
-        this.togglingSubmitting.set(false);
-        this.toggling.set(false);
-        this.flashToast('Eroare la actualizarea statutului.');
+        this.deletingSubmitting.set(false);
+        this.deleting.set(false);
+        this.flashToast('Eroare la stergerea lucratorului.');
       },
     });
   }

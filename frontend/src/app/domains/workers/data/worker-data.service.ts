@@ -32,7 +32,7 @@ export class WorkerDataService {
     return this.api.updateWorker(id, request);
   }
 
-  updateStatus(id: string, isActive: boolean): Observable<WorkerModel> {
-    return this.api.updateWorkerStatus(id, isActive);
+  delete(id: string): Observable<void> {
+    return this.api.deleteWorker(id);
   }
 }

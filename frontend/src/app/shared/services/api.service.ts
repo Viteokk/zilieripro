@@ -135,8 +135,8 @@ export class ApiService {
     return this.put<WorkerModel>(`/workers/${id}`, request);
   }
 
-  updateWorkerStatus(id: string, isActive: boolean): Observable<WorkerModel> {
-    return this.patch<WorkerModel>(`/workers/${id}/status`, { isActive });
+  deleteWorker(id: string): Observable<void> {
+    return this.delete<void>(`/workers/${id}`);
   }
 
   // --------------- Beneficiaries ---------------

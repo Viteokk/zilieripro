@@ -5,8 +5,9 @@ import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { StatusBadgeComponent } from '../../../shared/ui/components/status-badge.component';
 import { VoucherStore } from '../data/voucher.store';
 import { VoucherDataService } from '../data/voucher-data.service';
+import { ApiService } from '../../../shared/services/api.service';
 import { AuthStore } from '../../../shared/auth/auth.store';
-import { PaginatedResult, VoucherStatus, VoucherTableItem } from '../../../shared/models/voucher.model';
+import { BeneficiaryModel, PaginatedResult, VoucherStatus, VoucherTableItem } from '../../../shared/models/voucher.model';
 import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
 
 @Component({
@@ -74,7 +75,9 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
           [ngModel]="store.state().status"
           (ngModelChange)="onFilterChange('status', $event)">
           <option value="">{{ 'voucher.list.statusAll' | t }}</option>
-          <option value="Emis">{{ 'status.emis' | t }}</option>
+          @if (!isInspector()) {
+            <option value="Emis">{{ 'status.emis' | t }}</option>
+          }
           <option value="Activ">{{ 'status.activ' | t }}</option>
           <option value="Executat">{{ 'status.executat' | t }}</option>
           <option value="Raportat">{{ 'status.raportat' | t }}</option>
@@ -151,6 +154,61 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
                   }
                 } @else {
                   <div class="px-3 py-4 text-sm text-muted-foreground text-center">Nicio localitate gasita</div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Company filter — Inspector only -->
+        <div class="relative lg:col-span-3">
+          <button type="button" (click)="toggleCompanyDropdown(); $event.stopPropagation()"
+            class="h-9 w-full rounded-md border border-input bg-transparent pl-3 pr-8 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 text-left cursor-pointer relative">
+            <span class="block truncate">
+              @if (selectedCompany()) {
+                {{ selectedCompany()!.companyName }}
+              } @else {
+                Companie: toate
+              }
+            </span>
+            <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/60 pointer-events-none" fill="currentColor" viewBox="0 0 12 12">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+          </button>
+
+          @if (companyDropdownOpen()) {
+            <div class="fixed inset-0 z-[40]" (click)="closeCompanyDropdown()"></div>
+            <div class="absolute left-0 right-0 top-full mt-1 z-[50] max-h-80 overflow-hidden flex flex-col rounded-md border border-foreground/10 bg-white shadow-lg"
+                 (click)="$event.stopPropagation()">
+              <div class="p-2 border-b border-foreground/10">
+                <div class="relative">
+                  <svg class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input type="text" placeholder="Cauta dupa denumire sau IDNO"
+                    [ngModel]="companySearch()"
+                    (ngModelChange)="companySearch.set($event)"
+                    class="w-full h-8 pl-8 pr-2 text-sm border border-input rounded outline-none focus-visible:border-ring" />
+                </div>
+              </div>
+              <div class="overflow-y-auto flex-1">
+                @if (selectedCompany()) {
+                  <button type="button" (click)="selectCompany(null)"
+                    class="flex w-full items-center gap-2 px-3 py-2 hover:bg-accent cursor-pointer border-b border-foreground/5 text-sm text-muted-foreground">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    Sterge selectia
+                  </button>
+                }
+                @if (filteredCompanies().length > 0) {
+                  @for (c of filteredCompanies(); track c.id) {
+                    <button type="button" (click)="selectCompany(c)"
+                      [class]="'flex w-full flex-col px-3 py-2 hover:bg-accent cursor-pointer text-left ' + (selectedCompany()?.id === c.id ? 'bg-primary/5' : '')">
+                      <span class="text-sm font-medium">{{ c.companyName }}</span>
+                      <span class="text-xs text-muted-foreground font-mono">{{ c.idno }}</span>
+                    </button>
+                  }
+                } @else {
+                  <div class="px-3 py-4 text-sm text-muted-foreground text-center">Nicio companie gasita</div>
                 }
               </div>
             </div>
@@ -427,6 +485,7 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
 export class VoucherListComponent implements OnInit {
   protected readonly store = inject(VoucherStore);
   private readonly voucherDataService = inject(VoucherDataService);
+  private readonly api = inject(ApiService);
   private readonly router = inject(Router);
   private readonly auth = inject(AuthStore);
   protected readonly isInspector = computed(() => this.auth.roleType() === 'Inspector');
@@ -451,6 +510,39 @@ export class VoucherListComponent implements OnInit {
     const v = this.store.state().locality;
     return v ? v.split(',').map(s => s.trim()).filter(Boolean) : [];
   });
+
+  /** Companii (Inspector only) — incarcate la init din API. */
+  protected readonly allCompanies = signal<BeneficiaryModel[]>([]);
+  protected readonly companySearch = signal('');
+  protected readonly companyDropdownOpen = signal(false);
+
+  protected readonly filteredCompanies = computed(() => {
+    const term = this.companySearch().trim().toLowerCase();
+    const all = this.allCompanies();
+    return term
+      ? all.filter(c => c.companyName.toLowerCase().includes(term) || c.idno.toLowerCase().includes(term))
+      : all;
+  });
+
+  protected readonly selectedCompany = computed(() =>
+    this.allCompanies().find(c => c.id === this.store.state().beneficiaryId) ?? null
+  );
+
+  protected toggleCompanyDropdown(): void {
+    this.companyDropdownOpen.update(v => !v);
+    if (!this.companyDropdownOpen()) this.companySearch.set('');
+  }
+
+  protected closeCompanyDropdown(): void {
+    this.companyDropdownOpen.set(false);
+    this.companySearch.set('');
+  }
+
+  protected selectCompany(company: BeneficiaryModel | null): void {
+    this.store.setQuery({ beneficiaryId: company?.id ?? '', offset: 0 });
+    this.loadVouchers();
+    this.closeCompanyDropdown();
+  }
 
   /** Search local in dropdown-ul multi-select (Inspector only). */
   protected readonly localitySearch = signal('');
@@ -629,6 +721,9 @@ export class VoucherListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadVouchers();
+    if (this.isInspector()) {
+      this.api.getBeneficiaries({ limit: 1000, offset: 0 }).subscribe(r => this.allCompanies.set(r.items));
+    }
   }
 
   protected onFilterChange(key: string, value: string): void {
