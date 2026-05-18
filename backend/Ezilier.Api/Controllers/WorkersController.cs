@@ -44,4 +44,11 @@ public class WorkersController : BaseApiController
         var (model, errors, status) = await Mediator.Send(new CreateWorkerCommand(request, beneficiaryId));
         return StatusCode(status, errors is not null ? errors : model);
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var (_, errors, status) = await Mediator.Send(new DeleteWorkerCommand(id));
+        return StatusCode(status, errors);
+    }
 }

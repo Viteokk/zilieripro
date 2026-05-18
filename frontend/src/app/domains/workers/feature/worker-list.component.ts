@@ -73,7 +73,6 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
                 <th class="text-foreground h-10 px-2 text-start align-middle font-medium whitespace-nowrap">Prenume</th>
                 <th class="text-foreground h-10 px-2 text-start align-middle font-medium whitespace-nowrap">Telefon</th>
                 <th class="text-foreground h-10 px-2 text-start align-middle font-medium whitespace-nowrap">Email</th>
-                <th class="text-foreground h-10 px-2 text-start align-middle font-medium whitespace-nowrap">Statut</th>
                 <th class="text-foreground h-10 px-2 text-start align-middle font-medium whitespace-nowrap">Actiuni</th>
               </tr>
             </thead>
@@ -92,14 +91,6 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
                   <td class="p-2 align-middle whitespace-nowrap text-foreground/80">{{ worker.firstName }}</td>
                   <td class="p-2 align-middle whitespace-nowrap text-foreground/80">{{ worker.phone || '-' }}</td>
                   <td class="p-2 align-middle whitespace-nowrap text-foreground/80">{{ worker.email || '-' }}</td>
-                  <td class="p-2 align-middle whitespace-nowrap">
-                    <span class="inline-flex items-center gap-1.5 rounded-full border border-foreground/10 px-2.5 py-0.5 text-xs font-medium">
-                      <span class="inline-block size-2 rounded-full"
-                        [class.bg-success]="worker.isActive"
-                        [class.bg-muted-foreground]="!worker.isActive"></span>
-                      {{ worker.isActive ? 'Activ' : 'Inactiv' }}
-                    </span>
-                  </td>
                   <td class="p-2 align-middle whitespace-nowrap">
                     <div class="relative">
                       <button
@@ -144,13 +135,13 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
                             </button>
                             <button
                               type="button"
-                              [class]="'relative flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none transition-colors ' + (worker.isActive ? 'text-destructive hover:bg-destructive/10' : 'text-success hover:bg-success/10')"
-                              (click)="onToggleStatus(worker)"
+                              class="relative flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none text-destructive hover:bg-destructive/10 transition-colors"
+                              (click)="onDelete(worker); closeMenu()"
                             >
                               <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.69 14a6.9 6.9 0 0 0 .31-2V5l-8-3-3.16 1.18M4.73 4.73 4 5v7c0 6 8 10 8 10a20.29 20.29 0 0 0 5.62-4.38M1 1l22 22" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
-                              {{ worker.isActive ? 'Dezactivare' : 'Activare' }}
+                              Sterge
                             </button>
                           }
                         </div>
@@ -160,7 +151,7 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="7" class="p-2 align-middle py-8 text-center text-sm text-muted-foreground">
+                  <td colspan="6" class="p-2 align-middle py-8 text-center text-sm text-muted-foreground">
                     Nu au fost gasiti lucratori zilieri.
                   </td>
                 </tr>
@@ -274,17 +265,15 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
         <app-worker-edit [worker]="w" (closed)="onEditClosed()" (saved)="onEditSaved($event)" />
       }
 
-      @if (togglingWorker(); as w) {
+      @if (confirmWorker(); as w) {
         <app-confirm-dialog
-          [title]="w.isActive ? 'Dezactivare lucrator' : 'Activare lucrator'"
-          [message]="w.isActive
-            ? 'Sigur dezactivati lucratorul ' + w.lastName + ' ' + w.firstName + '? Nu se vor mai putea emite voucher-e noi.'
-            : 'Sigur activati lucratorul ' + w.lastName + ' ' + w.firstName + '?'"
-          [confirmText]="w.isActive ? 'Dezactiveaza' : 'Activeaza'"
-          [confirmVariant]="w.isActive ? 'destructive' : 'primary'"
-          [submitting]="togglingSubmitting()"
-          (confirmed)="onToggleConfirmed()"
-          (cancelled)="onToggleCancelled()" />
+          title="Sterge lucrator"
+          [message]="'Sigur stergi lucratorul ' + w.firstName + ' ' + w.lastName + '? Actiunea este ireversibila.'"
+          confirmText="Sterge"
+          confirmVariant="destructive"
+          [submitting]="deletingSubmitting()"
+          (confirmed)="onDeleteConfirmed()"
+          (cancelled)="confirmWorker.set(null)" />
       }
 
       @if (toastMessage(); as msg) {
@@ -304,8 +293,8 @@ export class WorkerListComponent implements OnInit {
   protected readonly openMenuId = signal<string>('');
   protected readonly menuPosition = signal<{ top: number; left: number } | null>(null);
   protected readonly editingWorker = signal<WorkerModel | null>(null);
-  protected readonly togglingWorker = signal<WorkerModel | null>(null);
-  protected readonly togglingSubmitting = signal<boolean>(false);
+  protected readonly confirmWorker = signal<WorkerModel | null>(null);
+  protected readonly deletingSubmitting = signal<boolean>(false);
   protected readonly toastMessage = signal<string>('');
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -400,32 +389,25 @@ export class WorkerListComponent implements OnInit {
     }, 3000);
   }
 
-  protected onToggleStatus(worker: WorkerModel): void {
-    this.closeMenu();
-    this.togglingWorker.set(worker);
+  protected onDelete(worker: WorkerModel): void {
+    this.confirmWorker.set(worker);
   }
 
-  protected onToggleCancelled(): void {
-    if (this.togglingSubmitting()) return;
-    this.togglingWorker.set(null);
-  }
-
-  protected onToggleConfirmed(): void {
-    const w = this.togglingWorker();
+  protected onDeleteConfirmed(): void {
+    const w = this.confirmWorker();
     if (!w) return;
-    this.togglingSubmitting.set(true);
-    const nextActive = !w.isActive;
-    this.workerDataService.updateStatus(w.id, nextActive).subscribe({
+    this.deletingSubmitting.set(true);
+    this.workerDataService.delete(w.id).subscribe({
       next: () => {
-        this.togglingSubmitting.set(false);
-        this.togglingWorker.set(null);
-        this.flashToast(nextActive ? 'Lucrator activat' : 'Lucrator dezactivat');
+        this.deletingSubmitting.set(false);
+        this.confirmWorker.set(null);
+        this.flashToast('Lucrator sters');
         this.loadWorkers();
       },
       error: () => {
-        this.togglingSubmitting.set(false);
-        this.togglingWorker.set(null);
-        this.flashToast('Eroare la actualizarea statutului.');
+        this.deletingSubmitting.set(false);
+        this.confirmWorker.set(null);
+        this.flashToast('Eroare la stergerea lucratorului.');
       },
     });
   }
