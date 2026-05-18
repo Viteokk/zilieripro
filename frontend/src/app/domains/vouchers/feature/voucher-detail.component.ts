@@ -27,13 +27,6 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
         @if (voucher()) {
           <div class="flex items-center gap-2">
             @if (!isInspector()) {
-              @if (voucher()!.status === 'Activ' || voucher()!.status === 'Executat') {
-                <button type="button" (click)="showSignModal.set(true)"
-                  class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                  {{ (voucher()!.signatureDataUrl ? 'action.resign' : 'action.sign') | t }}
-                </button>
-              }
               @if (voucher()!.status === 'Emis') {
                 <a [routerLink]="['/vouchers', voucher()!.id, 'edit']"
                    class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
@@ -72,17 +65,10 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
             <a [routerLink]="['/vouchers', voucher()!.id, 'receipt']"
               class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0-3-3m3 3 3-3M3 17V7a2 2 0 0 1 2-2h6l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-              </svg>
-              Chitanta
-            </a>
-            <button type="button" (click)="print()"
-              class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4">
                 <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
               </svg>
               Print
-            </button>
+            </a>
             <button type="button" (click)="toggleActivity()"
               [class]="showActivity() ? 'inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-accent px-4 text-sm font-medium' : 'inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground'">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4">
