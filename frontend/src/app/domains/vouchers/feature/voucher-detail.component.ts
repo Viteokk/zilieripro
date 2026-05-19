@@ -46,10 +46,7 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
                    class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
                   {{ 'action.edit' | t }}
                 </a>
-                <button type="button" (click)="execute()"
-                  class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90">
-                  {{ 'action.execute' | t }}
-                </button>
+
                 <button type="button" (click)="showCancelModal.set(true)"
                   class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-destructive text-white px-4 text-sm font-medium hover:bg-destructive/90">
                   {{ 'action.cancel' | t }}
