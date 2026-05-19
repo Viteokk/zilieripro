@@ -296,6 +296,30 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
         </div>
       }
 
+      @if (postExecuteDownloadOpen()) {
+        <div class="fixed inset-0 z-[200] flex items-center justify-center bg-black/40"
+             (click)="postExecuteDownloadOpen.set(false)">
+          <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6"
+               (click)="$event.stopPropagation()">
+            <h3 class="text-lg font-semibold text-foreground mb-2">Execuție finalizată</h3>
+            <p class="text-sm text-muted-foreground mb-5">
+              Doriți să descărcați voucherele executate?
+            </p>
+            <div class="flex justify-end gap-2">
+              <button type="button" (click)="postExecuteDownloadOpen.set(false)"
+                class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent">
+                Nu
+              </button>
+              <button type="button"
+                (click)="postExecuteDownloadOpen.set(false); router.navigate(['/vouchers/print'], { queryParams: { ids: lastExecutedIds().join(',') } })"
+                class="inline-flex h-9 items-center justify-center rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90">
+                Da, descarcă
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
       <!-- Table (no card wrapper, like eSocial) -->
       <div class="relative w-full overflow-x-auto">
         <table class="w-full caption-bottom text-sm">
@@ -617,6 +641,8 @@ export class VoucherListComponent implements OnInit {
   protected readonly bulkRunning = signal(false);
   protected readonly bulkExecuteRunning = signal(false);
   protected readonly confirmExecuteOpen = signal(false);
+  protected readonly postExecuteDownloadOpen = signal(false);
+  protected readonly lastExecutedIds = signal<string[]>([]);
 
   protected readonly allSelected = computed(() => {
     const ids = this.vouchers().map((v) => v.id);
@@ -685,7 +711,14 @@ export class VoucherListComponent implements OnInit {
     let pending = activIds.length;
     activIds.forEach(id => {
       this.voucherDataService.executeVoucher(id).subscribe({
-        next: () => { if (--pending === 0) { this.bulkExecuteRunning.set(false); this.loadVouchers(); } },
+        next: () => {
+          if (--pending === 0) {
+            this.bulkExecuteRunning.set(false);
+            this.loadVouchers();
+            this.lastExecutedIds.set(activIds);
+            this.postExecuteDownloadOpen.set(true);
+          }
+        },
         error: () => { if (--pending === 0) { this.bulkExecuteRunning.set(false); this.loadVouchers(); } },
       });
     });
