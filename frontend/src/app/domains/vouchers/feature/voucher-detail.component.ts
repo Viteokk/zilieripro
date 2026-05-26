@@ -27,6 +27,13 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
         @if (voucher()) {
           <div class="flex items-center gap-2">
             @if (!isInspector()) {
+              @if (voucher()!.status === 'Activ' || voucher()!.status === 'Executat') {
+                <button type="button" (click)="showSignModal.set(true)"
+                  class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                  {{ (voucher()!.signatureDataUrl ? 'action.resign' : 'action.sign') | t }}
+                </button>
+              }
               @if (voucher()!.status === 'Emis') {
                 <a [routerLink]="['/vouchers', voucher()!.id, 'edit']"
                    class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
