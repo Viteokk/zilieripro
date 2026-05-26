@@ -311,7 +311,7 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
                 Nu
               </button>
               <button type="button"
-                (click)="postExecuteDownloadOpen.set(false); router.navigate(['/vouchers/print'], { queryParams: { ids: lastExecutedIds().join(',') } })"
+                (click)="openExecutedPrint()"
                 class="inline-flex h-9 items-center justify-center rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90">
                 Da, descarcă
               </button>
@@ -722,6 +722,11 @@ export class VoucherListComponent implements OnInit {
         error: () => { if (--pending === 0) { this.bulkExecuteRunning.set(false); this.loadVouchers(); } },
       });
     });
+  }
+
+  protected openExecutedPrint(): void {
+    this.postExecuteDownloadOpen.set(false);
+    this.router.navigate(['/vouchers/print'], { queryParams: { ids: this.lastExecutedIds().join(',') } });
   }
 
   protected exportCsv(): void {

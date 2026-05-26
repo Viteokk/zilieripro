@@ -163,6 +163,7 @@ export class SidebarLayoutComponent {
     { label: 'nav.vouchers', route: '/vouchers', icon: '\u{1F4CB}' },
     { label: 'nav.workers', route: '/workers', icon: '\u{1F465}' },
     { label: 'nav.ipc21', route: '/reports/ipc21', icon: '\u{1F4C4}' },
+    { label: 'nav.company', route: '/company', icon: '\u{1F3E2}' },
   ];
 
   readonly inspectorNav: NavItem[] = [
