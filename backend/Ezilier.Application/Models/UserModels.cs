@@ -11,6 +11,7 @@ public record UserTableItem
     public string? Email { get; init; }
     public string? Phone { get; init; }
     public string RoleName { get; init; } = string.Empty;
+    public string? JobTitle { get; init; }
     public UserStatus Status { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
 }
@@ -31,6 +32,7 @@ public record UserDetailModel
     public Guid? BeneficiaryId { get; init; }
     public string? BeneficiaryName { get; init; }
     public string? AssignedDistricts { get; init; }
+    public string? JobTitle { get; init; }
     public List<string> Permissions { get; init; } = [];
     public DateTimeOffset CreatedAt { get; init; }
 }
@@ -47,6 +49,7 @@ public record CreateUserRequest
     public Guid RoleId { get; init; }
     public Guid? BeneficiaryId { get; init; }
     public string? AssignedDistricts { get; init; }
+    public string? JobTitle { get; init; }
     public List<Guid> PermissionIds { get; init; } = [];
 }
 
@@ -60,6 +63,7 @@ public record UpdateUserRequest
     public Guid? RoleId { get; init; }
     public Guid? BeneficiaryId { get; init; }
     public string? AssignedDistricts { get; init; }
+    public string? JobTitle { get; init; }
     public List<Guid>? PermissionIds { get; init; }
 }
 

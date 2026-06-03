@@ -4,11 +4,12 @@ import { Router, RouterLink } from '@angular/router';
 import { VoucherDataService } from '../data/voucher-data.service';
 import { WorkerDataService } from '../../workers/data/worker-data.service';
 import { ApiService } from '../../../shared/services/api.service';
-import { NomenclatorModel } from '../../../shared/models/voucher.model';
+import { NomenclatorModel, BeneficiaryModel } from '../../../shared/models/voucher.model';
 import { VoucherCreatedSummary, WorkerModel } from '../../../shared/models/voucher.model';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { optionalEmailValidator, optionalPhoneValidator } from '../../../shared/validators/optional-contact.validators';
 import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
+import { AuthStore } from '../../../shared/auth/auth.store';
 
 interface VoucherWorkerRow {
   id: string;
@@ -44,6 +45,45 @@ interface VoucherWorkerRow {
             <h2 class="text-lg font-semibold text-foreground">{{ 'voucher.create.predefinedSection' | t }}</h2>
             <p class="text-sm text-muted-foreground mt-1">{{ 'voucher.create.predefinedHint' | t }}</p>
           </div>
+
+          <!-- Company selector: Inspector only -->
+          @if (isInspector()) {
+            <div class="mb-4 space-y-2 relative">
+              <label class="text-sm font-medium leading-none">Companie <span class="text-destructive">*</span></label>
+              @if (selectedCompany()) {
+                <div class="flex h-10 items-center gap-2 rounded-md border border-input bg-muted/40 px-3 text-sm">
+                  <span class="flex-1 font-medium truncate">{{ selectedCompany()!.companyName }}</span>
+                  <span class="text-muted-foreground shrink-0">{{ selectedCompany()!.idno }}</span>
+                  <button type="button" (click)="clearCompany()"
+                    class="ml-2 shrink-0 text-muted-foreground hover:text-foreground transition-colors">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                  </button>
+                </div>
+              } @else {
+                <div class="relative">
+                  <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                  <input type="text" placeholder="Caută după denumire sau IDNO..."
+                         [value]="companySearch()"
+                         (input)="onCompanySearch($event)"
+                         (focus)="companyDropdownOpen.set(true)"
+                         class="flex h-10 w-full rounded-md border border-input bg-white pl-9 pr-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50" />
+                </div>
+                @if (companyDropdownOpen() && companyResults().length > 0) {
+                  <div class="fixed inset-0 z-[40]" (click)="companyDropdownOpen.set(false)"></div>
+                  <div class="absolute left-0 right-0 top-full mt-1 z-[50] rounded-md border border-foreground/10 bg-white shadow-lg overflow-hidden"
+                       (click)="$event.stopPropagation()">
+                    @for (c of companyResults(); track c.id) {
+                      <div class="flex items-center gap-3 px-3 py-2.5 hover:bg-accent cursor-pointer text-sm border-b border-foreground/5 last:border-0"
+                           (click)="selectCompany(c)">
+                        <span class="font-medium">{{ c.companyName }}</span>
+                        <span class="text-muted-foreground ml-auto shrink-0">{{ c.idno }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          }
 
           <!-- Row 1: Data, Ore, Remuneratie -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -529,6 +569,16 @@ export class CreateVoucherComponent implements OnInit {
   private readonly voucherDataService = inject(VoucherDataService);
   private readonly workerDataService = inject(WorkerDataService);
   private readonly api = inject(ApiService);
+  private readonly auth = inject(AuthStore);
+
+  protected readonly isInspector = computed(() => this.auth.roleType() === 'Inspector');
+
+  // Company selector (Inspector only)
+  protected readonly companySearch = signal('');
+  protected readonly companyDropdownOpen = signal(false);
+  protected readonly companyResults = signal<BeneficiaryModel[]>([]);
+  protected readonly selectedCompany = signal<BeneficiaryModel | null>(null);
+  private companySearchTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly activityTypes = signal<NomenclatorModel[]>([]);
 
@@ -886,7 +936,35 @@ export class CreateVoucherComponent implements OnInit {
     });
   }
 
+  onCompanySearch(e: Event): void {
+    const term = (e.target as HTMLInputElement).value;
+    this.companySearch.set(term);
+    if (this.companySearchTimer) clearTimeout(this.companySearchTimer);
+    if (term.length < 2) { this.companyResults.set([]); return; }
+    this.companySearchTimer = setTimeout(() => {
+      this.api.getBeneficiaries({ search: term, limit: 8, offset: 0 }).subscribe({
+        next: r => this.companyResults.set(r.items),
+      });
+    }, 300);
+  }
+
+  selectCompany(c: BeneficiaryModel): void {
+    this.selectedCompany.set(c);
+    this.companyDropdownOpen.set(false);
+    this.companyResults.set([]);
+    this.companySearch.set('');
+  }
+
+  clearCompany(): void {
+    this.selectedCompany.set(null);
+    this.companySearch.set('');
+  }
+
   protected onSubmit(): void {
+    if (this.isInspector() && !this.selectedCompany()) {
+      this.errorMessage.set('Selectează compania pentru care creezi voucherele.');
+      return;
+    }
     if (this.voucherForm.invalid) {
       this.voucherForm.markAllAsTouched();
       this.errorMessage.set('Completati toate campurile obligatorii.');
@@ -934,6 +1012,7 @@ export class CreateVoucherComponent implements OnInit {
       activityType: v.activityType || undefined,
       art5Alin1LitB: false,
       art5Alin1LitG: false,
+      ...(this.isInspector() && { beneficiaryId: this.selectedCompany()!.id }),
       workers: this.rows().map((r) => ({
         idnp: r.idnp,
         firstName: r.firstName,

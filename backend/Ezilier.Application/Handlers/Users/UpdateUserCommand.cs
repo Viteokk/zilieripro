@@ -88,6 +88,11 @@ public class UpdateUserCommandHandler(
             identity.AssignedDistricts = request.AssignedDistricts;
         }
 
+        if (request.JobTitle is not null)
+        {
+            identity.JobTitle = request.JobTitle;
+        }
+
         // Update permissions
         if (request.PermissionIds is not null)
         {

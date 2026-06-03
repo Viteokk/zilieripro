@@ -79,7 +79,8 @@ public class CreateUserCommandHandler(
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             RoleId = request.RoleId,
             BeneficiaryId = request.BeneficiaryId,
-            AssignedDistricts = request.AssignedDistricts
+            AssignedDistricts = request.AssignedDistricts,
+            JobTitle = request.JobTitle
         };
 
         context.UserIdentities.Add(identity);
