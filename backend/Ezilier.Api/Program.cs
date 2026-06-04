@@ -144,6 +144,7 @@ using (var scope = app.Services.CreateScope())
         "CREATE INDEX IF NOT EXISTS IX_UserIdentities_UserId ON UserIdentities (UserId)",
         "ALTER TABLE Vouchers ADD COLUMN WorkerPhone TEXT NULL",
         "ALTER TABLE Vouchers ADD COLUMN WorkerEmail TEXT NULL",
+        "ALTER TABLE UserIdentities ADD COLUMN JobTitle TEXT NULL",
     })
     {
         try { db.Database.ExecuteSqlRaw(sql); }
