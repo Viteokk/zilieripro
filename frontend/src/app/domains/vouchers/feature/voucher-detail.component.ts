@@ -34,31 +34,34 @@ import { MaskIdnpPipe } from '../../../shared/pipes/mask-idnp.pipe';
                   {{ (voucher()!.signatureDataUrl ? 'action.resign' : 'action.sign') | t }}
                 </button>
               }
-              @if (voucher()!.status === 'Emis') {
-                <a [routerLink]="['/vouchers', voucher()!.id, 'edit']"
-                   class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
-                  {{ 'action.edit' | t }}
-                </a>
+            }
+            @if (voucher()!.status === 'Emis') {
+              <a [routerLink]="['/vouchers', voucher()!.id, 'edit']"
+                 class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
+                {{ 'action.edit' | t }}
+              </a>
+              @if (!isInspector()) {
                 <button type="button" (click)="activate()"
                   class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90">
                   {{ 'action.activate' | t }}
                 </button>
-                <button type="button" (click)="showCancelModal.set(true)"
-                  class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-destructive text-white px-4 text-sm font-medium hover:bg-destructive/90">
-                  {{ 'action.cancel' | t }}
-                </button>
               }
-              @if (voucher()!.status === 'Activ') {
-                <a [routerLink]="['/vouchers', voucher()!.id, 'edit']"
-                   class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
-                  {{ 'action.edit' | t }}
-                </a>
-
-                <button type="button" (click)="showCancelModal.set(true)"
-                  class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-destructive text-white px-4 text-sm font-medium hover:bg-destructive/90">
-                  {{ 'action.cancel' | t }}
-                </button>
-              }
+              <button type="button" (click)="showCancelModal.set(true)"
+                class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-destructive text-white px-4 text-sm font-medium hover:bg-destructive/90">
+                {{ 'action.cancel' | t }}
+              </button>
+            }
+            @if (voucher()!.status === 'Activ') {
+              <a [routerLink]="['/vouchers', voucher()!.id, 'edit']"
+                 class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
+                {{ 'action.edit' | t }}
+              </a>
+              <button type="button" (click)="showCancelModal.set(true)"
+                class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-destructive text-white px-4 text-sm font-medium hover:bg-destructive/90">
+                {{ 'action.cancel' | t }}
+              </button>
+            }
+            @if (!isInspector()) {
               @if (voucher()!.status === 'Executat') {
                 <button type="button" (click)="report()"
                   class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90">

@@ -1,5 +1,6 @@
 using Ezilier.Application.Handlers.Vouchers;
 using Ezilier.Application.Models;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,7 +32,18 @@ public class VouchersController : BaseApiController
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateVoucherRequest request)
     {
-        var beneficiaryId = CurrentBeneficiaryId ?? Guid.Empty;
+        Guid beneficiaryId;
+        if (IsInspector)
+        {
+            if (!request.BeneficiaryId.HasValue || request.BeneficiaryId.Value == Guid.Empty)
+                return StatusCode(400, new ValidationResult(
+                    [new ValidationFailure("BeneficiaryId", "Compania este obligatorie pentru Inspector.")]));
+            beneficiaryId = request.BeneficiaryId.Value;
+        }
+        else
+        {
+            beneficiaryId = CurrentBeneficiaryId ?? Guid.Empty;
+        }
         var (model, errors, status) = await Mediator.Send(new CreateVouchersCommand(request, beneficiaryId));
         return StatusCode(status, errors is not null ? errors : model);
     }

@@ -56,7 +56,7 @@ const RO: Dict = {
   'field.executedAt': 'Executat la', 'field.reportedAt': 'Raportat la',
   'field.cancelledAt': 'Data anulare', 'field.reason': 'Motiv', 'field.note': 'Nota',
   'field.fullName': 'Nume complet', 'field.period': 'Perioada', 'field.role': 'Rol',
-  'field.vouchersCreated': 'Vouchere create',
+  'field.vouchersCreated': 'Vouchere create', 'field.jobTitle': 'Functie',
 
   // Voucher list page
   'voucher.list.title': 'Registru de evidenta a zilierilor',
@@ -267,7 +267,7 @@ const RU: Dict = {
   'field.executedAt': 'Выполнен', 'field.reportedAt': 'Отчитан',
   'field.cancelledAt': 'Дата отмены', 'field.reason': 'Причина', 'field.note': 'Примечание',
   'field.fullName': 'ФИО', 'field.period': 'Период', 'field.role': 'Роль',
-  'field.vouchersCreated': 'Создано ваучеров',
+  'field.vouchersCreated': 'Создано ваучеров', 'field.jobTitle': 'Должность',
 
   'voucher.list.title': 'Реестр учёта поденщиков',
   'voucher.list.searchPlaceholder': 'Поиск по коду, IDNP, работнику',
@@ -466,7 +466,7 @@ const EN: Dict = {
   'field.executedAt': 'Executed at', 'field.reportedAt': 'Reported at',
   'field.cancelledAt': 'Cancelled at', 'field.reason': 'Reason', 'field.note': 'Note',
   'field.fullName': 'Full name', 'field.period': 'Period', 'field.role': 'Role',
-  'field.vouchersCreated': 'Vouchers created',
+  'field.vouchersCreated': 'Vouchers created', 'field.jobTitle': 'Job title',
 
   'voucher.list.title': 'Day workers register',
   'voucher.list.searchPlaceholder': 'Search by Code, IDNP, Worker',

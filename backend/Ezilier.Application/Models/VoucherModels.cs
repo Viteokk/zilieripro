@@ -13,6 +13,7 @@ public record CreateVoucherRequest
     public bool Art5Alin1LitB { get; init; }
     public bool Art5Alin1LitG { get; init; }
     public List<VoucherWorkerRequest> Workers { get; init; } = [];
+    public Guid? BeneficiaryId { get; init; }
 }
 
 public record VoucherWorkerRequest

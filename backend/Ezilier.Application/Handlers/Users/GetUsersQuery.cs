@@ -62,6 +62,7 @@ public class GetUsersQueryHandler(
                 Email = ui.User.Email,
                 Phone = ui.User.Phone,
                 RoleName = ui.Role.Title,
+                JobTitle = ui.JobTitle,
                 Status = ui.Status,
                 CreatedAt = ui.CreatedAt
             })

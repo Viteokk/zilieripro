@@ -94,6 +94,7 @@ export interface CreateVoucherRequest {
   art5Alin1LitB: boolean;
   art5Alin1LitG: boolean;
   workers: VoucherWorkerRequest[];
+  beneficiaryId?: string;
 }
 
 export interface VoucherWorkerRequest {
@@ -166,6 +167,7 @@ export interface UserTableItem {
   email?: string;
   phone?: string;
   roleName: string;
+  jobTitle?: string;
   status: 'Active' | 'Blocked' | 'Deleted';
   createdAt: string;
 }

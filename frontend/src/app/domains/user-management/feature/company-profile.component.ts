@@ -73,7 +73,7 @@ interface CompanyInfo {
                 <th class="h-10 px-3 text-start align-middle font-medium text-xs uppercase tracking-wide">{{ 'field.idnp' | t }}</th>
                 <th class="h-10 px-3 text-start align-middle font-medium text-xs uppercase tracking-wide">{{ 'field.lastName' | t }}</th>
                 <th class="h-10 px-3 text-start align-middle font-medium text-xs uppercase tracking-wide">{{ 'field.firstName' | t }}</th>
-                <th class="h-10 px-3 text-start align-middle font-medium text-xs uppercase tracking-wide">{{ 'field.vouchersCreated' | t }}</th>
+                <th class="h-10 px-3 text-start align-middle font-medium text-xs uppercase tracking-wide">{{ 'field.jobTitle' | t }}</th>
                 <th class="h-10 px-3 text-start align-middle font-medium text-xs uppercase tracking-wide">{{ 'common.status' | t }}</th>
                 <th class="h-10 px-3 text-start align-middle font-medium text-xs uppercase tracking-wide">{{ 'common.actions' | t }}</th>
               </tr>
@@ -89,7 +89,7 @@ interface CompanyInfo {
                     <td class="px-3 py-3 font-mono text-xs text-foreground/80">{{ u.idnp | maskIdnp }}</td>
                     <td class="px-3 py-3 font-medium text-foreground">{{ u.lastName }}</td>
                     <td class="px-3 py-3 font-medium text-foreground">{{ u.firstName }}</td>
-                    <td class="px-3 py-3 text-foreground/80">{{ voucherCountFor(u) }}</td>
+                    <td class="px-3 py-3 text-foreground/80">{{ u.jobTitle }}</td>
                     <td class="px-3 py-3">
                       <span [class]="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + statusPill(u.status)">
                         {{ statusLabel(u.status) }}
@@ -148,7 +148,7 @@ interface CompanyInfo {
                 </div>
               </div>
               <div class="space-y-1.5">
-                <label class="text-xs text-muted-foreground">Email</label>
+                <label class="text-xs text-muted-foreground">Email *</label>
                 <input type="email" [value]="newUser().email" (input)="updateNewUser('email', $any($event.target).value)"
                   class="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm" />
               </div>
@@ -156,6 +156,11 @@ interface CompanyInfo {
                 <label class="text-xs text-muted-foreground">Telefon</label>
                 <input type="tel" [value]="newUser().phone" (input)="updateNewUser('phone', $any($event.target).value)"
                   class="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm" />
+              </div>
+              <div class="space-y-1.5">
+                <label class="text-xs text-muted-foreground">Functie *</label>
+                <input type="text" [value]="newUser().jobTitle" (input)="updateNewUser('jobTitle', $any($event.target).value)"
+                  class="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm" placeholder="ex: Contabil, Director..." />
               </div>
             </div>
             @if (addUserError()) {
@@ -167,6 +172,40 @@ interface CompanyInfo {
               <button type="button" (click)="saveNewUser()" [disabled]="addUserSubmitting()"
                 class="inline-flex h-9 items-center justify-center rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium disabled:opacity-50">
                 @if (addUserSubmitting()) { Se salveaza... } @else { Salveaza }
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Edit user modal -->
+      @if (showEditModal()) {
+        <div class="fixed inset-0 z-[200] flex items-center justify-center bg-black/40" (click)="showEditModal.set(false)">
+          <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6" (click)="$event.stopPropagation()">
+            <h3 class="text-lg font-semibold mb-4">Editeaza utilizator</h3>
+            <div class="space-y-3">
+              <div class="space-y-1.5">
+                <label class="text-xs text-muted-foreground">Functie *</label>
+                <input type="text" [value]="editingUser()?.jobTitle ?? ''"
+                  (input)="updateEditingUser('jobTitle', $any($event.target).value)"
+                  class="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm" placeholder="ex: Contabil, Director..." />
+              </div>
+              <div class="space-y-1.5">
+                <label class="text-xs text-muted-foreground">Telefon</label>
+                <input type="tel" [value]="editingUser()?.phone ?? ''"
+                  (input)="updateEditingUser('phone', $any($event.target).value)"
+                  class="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm" />
+              </div>
+            </div>
+            @if (editUserError()) {
+              <div class="mt-3 p-2.5 bg-destructive/10 border border-destructive/20 rounded-md text-xs text-destructive">{{ editUserError() }}</div>
+            }
+            <div class="mt-5 flex justify-end gap-2">
+              <button type="button" (click)="showEditModal.set(false)" [disabled]="editUserSubmitting()"
+                class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 text-sm disabled:opacity-50">Anuleaza</button>
+              <button type="button" (click)="saveEditUser()" [disabled]="editUserSubmitting()"
+                class="inline-flex h-9 items-center justify-center rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium disabled:opacity-50">
+                @if (editUserSubmitting()) { Se salveaza... } @else { Salveaza }
               </button>
             </div>
           </div>
@@ -184,7 +223,12 @@ export class CompanyProfileComponent implements OnInit {
   protected readonly addUserOpen = signal(false);
   protected readonly addUserError = signal('');
   protected readonly addUserSubmitting = signal(false);
-  protected readonly newUser = signal({ idnp: '', firstName: '', lastName: '', email: '', phone: '' });
+  protected readonly newUser = signal({ idnp: '', firstName: '', lastName: '', email: '', phone: '', jobTitle: '' });
+
+  protected readonly editingUser = signal<{ id: string; jobTitle: string; phone: string } | null>(null);
+  protected readonly showEditModal = signal(false);
+  protected readonly editUserSubmitting = signal(false);
+  protected readonly editUserError = signal('');
 
   private static readonly ANGAJATOR_ROLE_ID = 'a1000000-0000-0000-0000-000000000001';
 
@@ -218,11 +262,6 @@ export class CompanyProfileComponent implements OnInit {
     return u.idnp === this.auth.user()?.idnp;
   }
 
-  protected voucherCountFor(_u: UserTableItem): number {
-    // Placeholder until backend exposes per-user voucher count
-    return 0;
-  }
-
   protected statusPill(status: string): string {
     switch (status) {
       case 'Active': return 'bg-green-100 text-green-700';
@@ -241,20 +280,43 @@ export class CompanyProfileComponent implements OnInit {
     }
   }
 
-  protected editUser(_u: UserTableItem): void {
-    // TODO: open edit modal
+  protected editUser(u: UserTableItem): void {
+    this.editingUser.set({ id: u.id, jobTitle: u.jobTitle ?? '', phone: u.phone ?? '' });
+    this.editUserError.set('');
+    this.showEditModal.set(true);
+  }
+
+  protected updateEditingUser(key: string, value: string): void {
+    this.editingUser.update((eu) => eu ? { ...eu, [key]: value } : eu);
+  }
+
+  protected saveEditUser(): void {
+    this.editUserError.set('');
+    const eu = this.editingUser();
+    if (!eu || !eu.jobTitle.trim()) {
+      this.editUserError.set('Functia este obligatorie.');
+      return;
+    }
+    this.editUserSubmitting.set(true);
+    this.api.updateUser(eu.id, { jobTitle: eu.jobTitle.trim(), phone: eu.phone || undefined } as any).subscribe({
+      next: () => {
+        this.editUserSubmitting.set(false);
+        this.showEditModal.set(false);
+        this.loadUsers();
+      },
+      error: () => this.editUserSubmitting.set(false),
+    });
   }
 
   protected toggleBlock(u: UserTableItem): void {
     if (u.status === 'Blocked') {
-      // Would normally call an unblock endpoint
       return;
     }
     this.api.blockUser(u.id).subscribe({ next: () => this.loadUsers() });
   }
 
   protected openAddUser(): void {
-    this.newUser.set({ idnp: '', firstName: '', lastName: '', email: '', phone: '' });
+    this.newUser.set({ idnp: '', firstName: '', lastName: '', email: '', phone: '', jobTitle: '' });
     this.addUserError.set('');
     this.addUserOpen.set(true);
   }
@@ -270,8 +332,16 @@ export class CompanyProfileComponent implements OnInit {
       this.addUserError.set('IDNP-ul trebuie sa contina exact 13 cifre.');
       return;
     }
-    if (!u.firstName.trim() || !u.lastName.trim()) {
+    if (!u.lastName.trim() || !u.firstName.trim()) {
       this.addUserError.set('Numele si prenumele sunt obligatorii.');
+      return;
+    }
+    if (!u.email.trim()) {
+      this.addUserError.set('Email-ul este obligatoriu.');
+      return;
+    }
+    if (!u.jobTitle.trim()) {
+      this.addUserError.set('Functia este obligatorie.');
       return;
     }
     const beneficiaryId = this.auth.user()?.beneficiaryId;
@@ -284,8 +354,9 @@ export class CompanyProfileComponent implements OnInit {
       idnp: u.idnp,
       firstName: u.firstName.trim(),
       lastName: u.lastName.trim(),
-      email: u.email || undefined,
+      email: u.email.trim(),
       phone: u.phone || undefined,
+      jobTitle: u.jobTitle.trim(),
       roleId: CompanyProfileComponent.ANGAJATOR_ROLE_ID,
       beneficiaryId,
       password: 'TempPass123!',

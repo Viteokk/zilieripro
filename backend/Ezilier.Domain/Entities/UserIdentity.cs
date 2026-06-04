@@ -14,6 +14,7 @@ public class UserIdentity : EntityBase
     public Guid? BeneficiaryId { get; set; }
 
     public string? AssignedDistricts { get; set; }
+    public string? JobTitle { get; set; }
 
     public virtual User User { get; set; } = null!;
     public virtual Role Role { get; set; } = null!;
