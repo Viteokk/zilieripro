@@ -499,7 +499,7 @@ export class VoucherDetailComponent implements OnInit {
       });
   }
 
-  protected cancelReasonLabel(code: CancellationReasonCode): string {
+  protected cancelReasonLabel(code: string): string {
     const found = this.cancelReasons().find((r) => r.code.replace('-', '') === code);
     return found?.titleRo || code;
   }
