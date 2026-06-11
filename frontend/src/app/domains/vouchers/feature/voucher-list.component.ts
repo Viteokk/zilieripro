@@ -336,15 +336,15 @@ import { ConfirmDialogComponent } from '../../../shared/ui/confirm-dialog.compon
               }
               <th class="text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">{{ 'field.code' | t }}</th>
               <th class="text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">{{ 'field.worker' | t }}</th>
-              <th class="text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">{{ 'field.idnp' | t }}</th>
+              <th class="hidden sm:table-cell text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">{{ 'field.idnp' | t }}</th>
               @if (isInspector()) {
                 <th class="text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">Beneficiar</th>
               }
-              <th class="text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">{{ 'field.district' | t }}</th>
+              <th class="hidden sm:table-cell text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">{{ 'field.district' | t }}</th>
               <th class="text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">{{ 'common.status' | t }}</th>
-              <th class="text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">{{ 'field.hours' | t }}</th>
+              <th class="hidden md:table-cell text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">{{ 'field.hours' | t }}</th>
               <th class="text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">{{ 'field.remuneration' | t }}</th>
-              <th class="text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">{{ 'common.date' | t }}</th>
+              <th class="hidden md:table-cell text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">{{ 'common.date' | t }}</th>
               <th class="text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap w-10"></th>
             </tr>
           </thead>
@@ -364,20 +364,20 @@ import { ConfirmDialogComponent } from '../../../shared/ui/confirm-dialog.compon
                   </a>
                 </td>
                 <td class="px-4 py-3 align-middle whitespace-nowrap text-foreground">{{ voucher.workerFullName }}</td>
-                <td class="px-4 py-3 align-middle whitespace-nowrap text-foreground/60 font-mono text-xs">{{ voucher.workerIdnp | maskIdnp }}</td>
+                <td class="hidden sm:table-cell px-4 py-3 align-middle whitespace-nowrap text-foreground/60 font-mono text-xs">{{ voucher.workerIdnp | maskIdnp }}</td>
                 @if (isInspector()) {
                   <td class="px-4 py-3 align-middle whitespace-nowrap text-foreground/80 text-sm">{{ voucher.beneficiaryName ?? '—' }}</td>
                 }
-                <td class="px-4 py-3 align-middle whitespace-nowrap text-foreground/80">{{ voucher.workDistrict }}</td>
+                <td class="hidden sm:table-cell px-4 py-3 align-middle whitespace-nowrap text-foreground/80">{{ voucher.workDistrict }}</td>
                 <td class="px-4 py-3 align-middle whitespace-nowrap">
                   <span class="inline-flex items-center gap-1.5 text-sm">
                     <span [class]="'inline-block size-2 rounded-full ' + statusDotColor(voucher.status)"></span>
                     {{ voucher.status }}
                   </span>
                 </td>
-                <td class="px-4 py-3 align-middle whitespace-nowrap text-foreground/80">{{ voucher.hoursWorked }}h</td>
+                <td class="hidden md:table-cell px-4 py-3 align-middle whitespace-nowrap text-foreground/80">{{ voucher.hoursWorked }}h</td>
                 <td class="px-4 py-3 align-middle whitespace-nowrap text-foreground/80">{{ voucher.netRemuneration }} {{ 'common.mdl' | t }}</td>
-                <td class="px-4 py-3 align-middle whitespace-nowrap text-foreground/80">{{ voucher.workDate }}</td>
+                <td class="hidden md:table-cell px-4 py-3 align-middle whitespace-nowrap text-foreground/80">{{ voucher.workDate }}</td>
                 <td class="px-4 py-3 align-middle whitespace-nowrap">
                   <div class="relative">
                     <button

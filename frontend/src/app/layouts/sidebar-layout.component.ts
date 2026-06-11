@@ -64,8 +64,8 @@ interface NavItem {
             </span>
           }
         </div>
-        <!-- Language switcher -->
-        <div class="inline-flex items-center rounded-md border border-input overflow-hidden text-xs font-medium">
+        <!-- Language switcher — hidden on small screens, use sidebar instead -->
+        <div class="hidden sm:inline-flex items-center rounded-md border border-input overflow-hidden text-xs font-medium">
           @for (l of langs; track l) {
             <button type="button" (click)="setLang(l)"
               [class]="(i18n.lang() === l ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-accent hover:text-accent-foreground') + ' h-8 px-2.5 transition-colors'">
@@ -100,7 +100,7 @@ interface NavItem {
       [class.max-lg:-translate-x-full]="!sidebarOpen()"
       [class.max-lg:translate-x-0]="sidebarOpen()"
     >
-      <nav class="flex flex-col gap-1 overflow-auto py-6 px-3">
+      <nav class="flex flex-col gap-1 overflow-auto py-6 px-3 pb-4">
         @switch (auth.roleType()) {
           @case ('Angajator') {
             @for (item of employerNav; track item.route) {
@@ -124,6 +124,19 @@ interface NavItem {
           }
         }
       </nav>
+
+      <!-- Language switcher — only visible on mobile (hidden in header on mobile) -->
+      <div class="sm:hidden mt-auto pt-4 border-t border-border px-1">
+        <p class="text-xs text-muted-foreground mb-2 px-1">Limbă</p>
+        <div class="inline-flex items-center rounded-md border border-input overflow-hidden text-xs font-medium">
+          @for (l of langs; track l) {
+            <button type="button" (click)="setLang(l)"
+              [class]="(i18n.lang() === l ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-accent hover:text-accent-foreground') + ' h-8 px-3 transition-colors touch-manipulation'">
+              {{ l.toUpperCase() }}
+            </button>
+          }
+        </div>
+      </div>
 
       <ng-template #navLink let-item>
         <a

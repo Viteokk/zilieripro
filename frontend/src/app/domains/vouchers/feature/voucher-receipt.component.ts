@@ -57,7 +57,7 @@ import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
             <h2 class="text-[11px] font-bold uppercase tracking-wider text-primary mb-3">
               Beneficiarul de lucrari (Angajator)
             </h2>
-            <dl class="grid grid-cols-[180px_1fr] gap-y-2 gap-x-4 text-sm">
+            <dl class="grid grid-cols-[100px_1fr] sm:grid-cols-[180px_1fr] gap-y-2 gap-x-4 text-sm">
               <dt class="text-muted-foreground">IDNO</dt>
               <dd class="font-mono font-semibold">{{ v.beneficiary.idno }}</dd>
               <dt class="text-muted-foreground">Denumirea companiei</dt>
@@ -70,7 +70,7 @@ import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
             <h2 class="text-[11px] font-bold uppercase tracking-wider text-primary mb-3">
               Zilierul (Lucrator)
             </h2>
-            <dl class="grid grid-cols-[180px_1fr] gap-y-2 gap-x-4 text-sm">
+            <dl class="grid grid-cols-[100px_1fr] sm:grid-cols-[180px_1fr] gap-y-2 gap-x-4 text-sm">
               <dt class="text-muted-foreground">IDNP</dt>
               <dd class="font-mono font-semibold">{{ v.worker.idnp }}</dd>
               <dt class="text-muted-foreground">Numele</dt>
@@ -93,7 +93,7 @@ import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
             <h2 class="text-[11px] font-bold uppercase tracking-wider text-primary mb-3">
               Detalii activitate
             </h2>
-            <dl class="grid grid-cols-[180px_1fr] gap-y-2 gap-x-4 text-sm">
+            <dl class="grid grid-cols-[100px_1fr] sm:grid-cols-[180px_1fr] gap-y-2 gap-x-4 text-sm">
               <dt class="text-muted-foreground">Ziua de activitate</dt>
               <dd class="font-semibold">{{ formatDate(v.workDate) }}</dd>
               <dt class="text-muted-foreground">Numarul de ore lucrate</dt>
@@ -113,7 +113,7 @@ import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
             <h2 class="text-[11px] font-bold uppercase tracking-wider text-primary mb-3">
               Date financiare
             </h2>
-            <dl class="grid grid-cols-[180px_1fr] gap-y-2 gap-x-4 text-sm">
+            <dl class="grid grid-cols-[100px_1fr] sm:grid-cols-[180px_1fr] gap-y-2 gap-x-4 text-sm">
               <dt class="text-muted-foreground">Remuneratia neta (MDL)</dt>
               <dd class="font-semibold">{{ formatMoney(v.netRemuneration) }}</dd>
               <dt class="text-muted-foreground">Impozit pe venit 12% (MDL)</dt>
@@ -121,7 +121,7 @@ import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
               <dt class="text-muted-foreground">Contributii CNAS 6% (MDL)</dt>
               <dd class="font-semibold">{{ formatMoney(v.cnasContribution) }}</dd>
             </dl>
-            <div class="mt-3 pt-3 border-t-2 border-foreground/30 grid grid-cols-[180px_1fr] gap-x-4">
+            <div class="mt-3 pt-3 border-t-2 border-foreground/30 grid grid-cols-[100px_1fr] sm:grid-cols-[180px_1fr] gap-x-4 items-baseline">
               <div class="text-sm font-bold uppercase tracking-wider">Remuneratia bruta (MDL)</div>
               <div class="text-lg font-bold text-primary">{{ formatMoney(v.grossRemuneration) }}</div>
             </div>
@@ -140,7 +140,7 @@ import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 
           <!-- SIGNATURE AREA — only on print (and in a dedicated "print preview" class) -->
           <section class="px-8 py-6 signature-area">
-            <div class="grid grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
               <div>
                 <div class="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-6">
                   Semnatura zilierului (olografa)
@@ -179,8 +179,11 @@ import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
     </div>
 
     <style>
-      /* Voucher sheet mimics A5 aspect on screen (portrait). */
-      :host ::ng-deep .voucher-sheet { max-width: 148mm; min-height: 210mm; }
+      /* Voucher sheet mimics A5 aspect on screen (portrait). On mobile: full-width. */
+      :host ::ng-deep .voucher-sheet { max-width: 100%; min-height: auto; }
+      @media (min-width: 640px) {
+        :host ::ng-deep .voucher-sheet { max-width: 148mm; min-height: 210mm; }
+      }
 
       /* On-screen: hide the signature section — it appears only at print. */
       :host ::ng-deep .signature-area { display: none; }

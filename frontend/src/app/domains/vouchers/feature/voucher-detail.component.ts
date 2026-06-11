@@ -19,13 +19,13 @@ import { VoucherSignOverlayComponent } from '../ui/voucher-sign-overlay.componen
   template: `
     <div class="max-w-7xl mx-auto">
       <!-- Toolbar (hidden on print) -->
-      <div class="mb-4 flex items-center justify-between print:hidden">
+      <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between print:hidden">
         <a routerLink="/vouchers"
            class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
           &larr; {{ 'worker.profile.back' | t }}
         </a>
         @if (voucher()) {
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap gap-2">
             @if (!isInspector()) {
               @if (voucher()!.status === 'Activ' || voucher()!.status === 'Executat') {
                 <button type="button" (click)="showSignModal.set(true)"
@@ -100,7 +100,7 @@ import { VoucherSignOverlayComponent } from '../ui/voucher-sign-overlay.componen
 
           <!-- METADATA -->
           <section class="mb-4">
-            <dl class="grid grid-cols-[200px_1fr] gap-y-1">
+            <dl class="grid grid-cols-[110px_1fr] sm:grid-cols-[200px_1fr] gap-y-1">
               <dt>COD</dt><dd>{{ v.code }}</dd>
               <dt>EMIS</dt><dd>{{ formatDateTime(v.createdAt) }}</dd>
               <dt>STATUT</dt><dd>{{ v.status | uppercase }}</dd>
@@ -110,7 +110,7 @@ import { VoucherSignOverlayComponent } from '../ui/voucher-sign-overlay.componen
           <!-- BENEFICIAR -->
           <section class="mb-4">
             <h2 class="text-sm font-bold uppercase mb-2">Beneficiarul de lucrari (Angajator)</h2>
-            <dl class="grid grid-cols-[200px_1fr] gap-y-1">
+            <dl class="grid grid-cols-[110px_1fr] sm:grid-cols-[200px_1fr] gap-y-1">
               <dt>IDNO</dt><dd>{{ v.beneficiary.idno }}</dd>
               <dt>Denumirea companiei</dt><dd>{{ v.beneficiary.companyName }}</dd>
             </dl>
@@ -119,7 +119,7 @@ import { VoucherSignOverlayComponent } from '../ui/voucher-sign-overlay.componen
           <!-- ZILIER -->
           <section class="mb-4">
             <h2 class="text-sm font-bold uppercase mb-2">Zilierul (Lucrator)</h2>
-            <dl class="grid grid-cols-[200px_1fr] gap-y-1">
+            <dl class="grid grid-cols-[110px_1fr] sm:grid-cols-[200px_1fr] gap-y-1">
               <dt>IDNP</dt><dd>{{ v.worker.idnp | maskIdnp }}</dd>
               <dt>Numele</dt><dd>{{ v.worker.lastName }}</dd>
               <dt>Prenumele</dt><dd>{{ v.worker.firstName }}</dd>
@@ -135,7 +135,7 @@ import { VoucherSignOverlayComponent } from '../ui/voucher-sign-overlay.componen
           <!-- DETALII ACTIVITATE -->
           <section class="mb-4">
             <h2 class="text-sm font-bold uppercase mb-2">Detalii activitate</h2>
-            <dl class="grid grid-cols-[200px_1fr] gap-y-1">
+            <dl class="grid grid-cols-[110px_1fr] sm:grid-cols-[200px_1fr] gap-y-1">
               <dt>Ziua de activitate</dt><dd>{{ formatDate(v.workDate) }}</dd>
               <dt>Numarul de ore lucrate</dt><dd>{{ v.hoursWorked }}</dd>
               <dt>Locul exercitarii activitatii</dt>
@@ -150,7 +150,7 @@ import { VoucherSignOverlayComponent } from '../ui/voucher-sign-overlay.componen
           <!-- DATE FINANCIARE -->
           <section class="mb-4">
             <h2 class="text-sm font-bold uppercase mb-2">Date financiare</h2>
-            <dl class="grid grid-cols-[200px_1fr] gap-y-1">
+            <dl class="grid grid-cols-[110px_1fr] sm:grid-cols-[200px_1fr] gap-y-1">
               <dt>Remuneratia neta (MDL)</dt><dd>{{ formatMoney(v.netRemuneration) }}</dd>
               <dt>Impozit pe venit 12% (MDL)</dt><dd>{{ formatMoney(v.incomeTax) }}</dd>
               <dt>Contributii CNAS 6% (MDL)</dt><dd>{{ formatMoney(v.cnasContribution) }}</dd>
@@ -171,7 +171,7 @@ import { VoucherSignOverlayComponent } from '../ui/voucher-sign-overlay.componen
           @if (v.status === 'Anulat') {
             <section class="mb-4">
               <h2 class="text-sm font-bold uppercase mb-2">Voucher anulat</h2>
-              <dl class="grid grid-cols-[200px_1fr] gap-y-1">
+              <dl class="grid grid-cols-[110px_1fr] sm:grid-cols-[200px_1fr] gap-y-1">
                 <dt>Motiv</dt><dd>{{ cancelReasonLabel(v.cancellationReason!) }}</dd>
                 @if (v.cancellationNote) { <dt>Comentarii</dt><dd>{{ v.cancellationNote }}</dd> }
                 @if (v.cancellationDate) { <dt>Data anularii</dt><dd>{{ formatDateTime(v.cancellationDate) }}</dd> }
@@ -181,7 +181,7 @@ import { VoucherSignOverlayComponent } from '../ui/voucher-sign-overlay.componen
 
           <!-- SIGNATURE AREA — only on print -->
           <section class="signature-area mt-8 mb-4">
-            <div class="grid grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
               <div>
                 <div class="text-xs mb-8">Semnatura zilierului (olografa)</div>
                 <div class="h-12 border-b border-black"></div>
@@ -248,7 +248,7 @@ import { VoucherSignOverlayComponent } from '../ui/voucher-sign-overlay.componen
       @if (showCancelModal()) {
         <div class="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4 print:hidden"
              (click)="!showCancelConfirm() && showCancelModal.set(false)">
-          <div class="bg-white rounded-xl shadow-2xl w-full max-w-md relative overflow-hidden"
+          <div class="bg-white rounded-xl shadow-2xl w-full max-w-md relative overflow-y-auto max-h-[90dvh]"
                (click)="$event.stopPropagation()">
             <div class="p-6">
               <h3 class="text-lg font-semibold mb-4 text-gray-900">{{ 'voucher.detail.cancelModal' | t }}</h3>

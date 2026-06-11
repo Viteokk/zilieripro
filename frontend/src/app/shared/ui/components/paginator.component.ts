@@ -16,13 +16,14 @@ export interface PageChangeEvent {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6">
-      <div class="flex items-center gap-2 text-sm text-gray-700">
-        <span>Rinduri per pagina:</span>
+    <div class="flex flex-col gap-2 border-t border-gray-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <!-- Rows per page — hidden on mobile -->
+      <div class="hidden sm:flex items-center gap-2 text-sm text-gray-700">
+        <span>Rânduri per pagină:</span>
         <select
           [value]="limit()"
           (change)="onPageSizeChange($event)"
-          class="rounded border-gray-300 text-sm"
+          class="rounded border border-gray-300 text-sm px-1 py-0.5"
         >
           @for (size of pageSizeOptions; track size) {
             <option [value]="size">{{ size }}</option>
@@ -30,47 +31,33 @@ export interface PageChangeEvent {
         </select>
       </div>
 
-      <div class="flex items-center gap-2 text-sm text-gray-700">
-        <span>
-          {{ rangeStart() }}-{{ rangeEnd() }} din {{ totalCount() }}
-        </span>
+      <!-- Range info -->
+      <div class="flex items-center justify-center gap-2 text-sm text-gray-700">
+        <span>{{ rangeStart() }}–{{ rangeEnd() }} din {{ totalCount() }}</span>
       </div>
 
-      <div class="flex items-center gap-1">
-        <button
-          type="button"
-          [disabled]="currentPage() === 1"
-          (click)="goToPage(1)"
-          class="rounded px-2 py-1 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          &laquo;
+      <!-- Navigation -->
+      <div class="flex items-center justify-center gap-1">
+        <button type="button" [disabled]="currentPage() === 1" (click)="goToPage(1)"
+          class="hidden sm:inline-flex rounded px-2 py-1.5 text-sm hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation">
+          «
         </button>
-        <button
-          type="button"
-          [disabled]="currentPage() === 1"
-          (click)="goToPage(currentPage() - 1)"
-          class="rounded px-2 py-1 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          &lsaquo;
+        <button type="button" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium
+                 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation">
+          ‹
         </button>
-        <span class="px-2 text-sm">
-          Pagina {{ currentPage() }} din {{ totalPages() }}
+        <span class="px-3 text-sm font-medium">
+          {{ currentPage() }} / {{ totalPages() }}
         </span>
-        <button
-          type="button"
-          [disabled]="currentPage() === totalPages()"
-          (click)="goToPage(currentPage() + 1)"
-          class="rounded px-2 py-1 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          &rsaquo;
+        <button type="button" [disabled]="currentPage() === totalPages()" (click)="goToPage(currentPage() + 1)"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium
+                 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation">
+          ›
         </button>
-        <button
-          type="button"
-          [disabled]="currentPage() === totalPages()"
-          (click)="goToPage(totalPages())"
-          class="rounded px-2 py-1 text-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          &raquo;
+        <button type="button" [disabled]="currentPage() === totalPages()" (click)="goToPage(totalPages())"
+          class="hidden sm:inline-flex rounded px-2 py-1.5 text-sm hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed touch-manipulation">
+          »
         </button>
       </div>
     </div>
