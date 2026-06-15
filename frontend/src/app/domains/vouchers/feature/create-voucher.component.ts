@@ -210,8 +210,8 @@ interface VoucherWorkerRow {
             </div>
           </div>
 
-          <!-- Row 3: Adresa + Activitate -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Row 3: Adresa + Activitate + Tag -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="space-y-2">
               <label class="text-sm font-medium leading-none">{{ "field.address" | t }} <span class="text-destructive">*</span></label>
               <input type="text" formControlName="workAddress" placeholder="str. Exemplu 1/2"
@@ -265,6 +265,31 @@ interface VoucherWorkerRow {
                   </div>
                 }
               </div>
+            </div>
+
+            <!-- Tag (activitate specifică) -->
+            <div class="space-y-2 relative">
+              <label class="text-sm font-medium leading-none">Tag / Activitate specifică</label>
+              <input type="text"
+                [value]="tagInput()"
+                (input)="onTagInput($any($event.target).value)"
+                (focus)="tagDropdownOpen.set(true)"
+                (keydown.enter)="confirmTag(); $event.preventDefault()"
+                (keydown.escape)="tagDropdownOpen.set(false)"
+                placeholder="ex: cirese, grau, etc."
+                class="flex h-10 w-full rounded-md border border-input bg-white px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50" />
+              @if (tagDropdownOpen() && filteredExistingTags().length > 0) {
+                <div class="fixed inset-0 z-[40]" (click)="tagDropdownOpen.set(false)"></div>
+                <div class="absolute left-0 right-0 top-full mt-1 z-[50] max-h-48 overflow-y-auto rounded-md border border-foreground/10 bg-white shadow-lg"
+                     (click)="$event.stopPropagation()">
+                  @for (t of filteredExistingTags(); track t) {
+                    <div class="px-3 py-2 hover:bg-accent cursor-pointer text-sm"
+                         (click)="selectTag(t)">
+                      {{ t }}
+                    </div>
+                  }
+                </div>
+              }
             </div>
           </div>
         </form>
@@ -581,10 +606,13 @@ export class CreateVoucherComponent implements OnInit {
   private companySearchTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly activityTypes = signal<NomenclatorModel[]>([]);
+  protected readonly existingTags = signal<string[]>([]);
 
   // Searchable dropdowns
   protected readonly activitySearch = signal('');
   protected readonly activityDropdownOpen = signal(false);
+  protected readonly tagInput = signal('');
+  protected readonly tagDropdownOpen = signal(false);
   protected readonly selectedActivityCode = signal('');
   protected readonly districtSearch = signal('');
   protected readonly districtDropdownOpen = signal(false);
@@ -639,6 +667,11 @@ export class CreateVoucherComponent implements OnInit {
     const term = this.activitySearch().toLowerCase();
     const list = this.activityTypes();
     return term ? list.filter(a => a.titleRo.toLowerCase().includes(term) || a.code.toLowerCase().includes(term)) : list;
+  });
+  protected readonly filteredExistingTags = computed(() => {
+    const term = this.tagInput().toLowerCase().trim();
+    const tags = this.existingTags();
+    return term ? tags.filter(t => t.toLowerCase().includes(term)) : tags;
   });
   protected readonly districtList = ['Chisinau', 'Balti', 'Cahul', 'Orhei', 'Ungheni', 'Soroca', 'Edinet', 'Comrat'];
   protected readonly filteredDistricts = computed(() => {
@@ -737,6 +770,21 @@ export class CreateVoucherComponent implements OnInit {
     this.api.getNomenclators('activity_types').subscribe({
       next: (list) => this.activityTypes.set((list ?? []).filter((n) => n.isActive)),
     });
+    this.api.getVoucherTags().subscribe({ next: (tags) => this.existingTags.set(tags ?? []) });
+  }
+
+  protected onTagInput(value: string): void {
+    this.tagInput.set(value);
+    this.tagDropdownOpen.set(true);
+  }
+
+  protected selectTag(tag: string): void {
+    this.tagInput.set(tag);
+    this.tagDropdownOpen.set(false);
+  }
+
+  protected confirmTag(): void {
+    this.tagDropdownOpen.set(false);
   }
 
   protected selectActivity(a: NomenclatorModel): void {
@@ -1010,6 +1058,7 @@ export class CreateVoucherComponent implements OnInit {
       workLocality: v.workLocality!,
       workAddress: v.workAddress || undefined,
       activityType: v.activityType || undefined,
+      tag: this.tagInput().trim() || undefined,
       art5Alin1LitB: false,
       art5Alin1LitG: false,
       ...(this.isInspector() && { beneficiaryId: this.selectedCompany()!.id }),
@@ -1052,6 +1101,7 @@ export class CreateVoucherComponent implements OnInit {
     this.panel.set(null);
     this.selectedActivityCode.set('');
     this.selectedLocalityValue.set('');
+    this.tagInput.set('');
     this.voucherForm.reset({
       workDate: new Date().toISOString().split('T')[0],
       defaultHours: 8,

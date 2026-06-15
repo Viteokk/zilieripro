@@ -11,6 +11,7 @@ export interface VoucherQueryState {
   district: string;
   locality: string;
   beneficiaryId: string;
+  tag: string;
   sortBy: string;
   sortDesc: boolean;
 }
@@ -26,6 +27,7 @@ const initialState: VoucherQueryState = {
   district: '',
   locality: '',
   beneficiaryId: '',
+  tag: '',
   sortBy: 'createdAt',
   sortDesc: true,
 };
@@ -52,6 +54,7 @@ export class VoucherStore {
     if (s.district) params['district'] = s.district;
     if (s.locality) params['locality'] = s.locality;
     if (s.beneficiaryId) params['beneficiaryId'] = s.beneficiaryId;
+    if (s.tag) params['tag'] = s.tag;
     return params;
   });
 

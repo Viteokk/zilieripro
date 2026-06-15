@@ -241,6 +241,49 @@ import { ConfirmDialogComponent } from '../../../shared/ui/confirm-dialog.compon
           [ngModel]="store.state().dateTo"
           (ngModelChange)="onFilterChange('dateTo', $event)" />
         }
+
+        <!-- Tag filter -->
+        <div class="relative lg:col-span-2">
+          <button type="button" (click)="tagFilterDropdownOpen.set(!tagFilterDropdownOpen()); $event.stopPropagation()"
+            class="h-9 w-full rounded-md border border-input bg-transparent pl-3 pr-8 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 text-left cursor-pointer relative">
+            <span class="block truncate" [class.text-muted-foreground]="!store.state().tag">
+              {{ store.state().tag || 'Tag: toate' }}
+            </span>
+            <svg class="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-foreground/60 pointer-events-none" fill="none" viewBox="0 0 12 12">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          @if (tagFilterDropdownOpen()) {
+            <div class="fixed inset-0 z-[40]" (click)="tagFilterDropdownOpen.set(false)"></div>
+            <div class="absolute left-0 right-0 top-full mt-1 z-[50] max-h-64 overflow-hidden flex flex-col rounded-md border border-foreground/10 bg-white shadow-lg"
+                 (click)="$event.stopPropagation()">
+              <div class="p-2 border-b border-foreground/10">
+                <input type="text" placeholder="Cauta tag..."
+                  [ngModel]="tagFilterSearch()"
+                  (ngModelChange)="tagFilterSearch.set($event)"
+                  class="w-full h-8 px-2 text-sm border border-input rounded outline-none focus-visible:border-ring" />
+              </div>
+              <div class="overflow-y-auto flex-1">
+                @if (store.state().tag) {
+                  <button type="button" (click)="onFilterChange('tag', ''); tagFilterDropdownOpen.set(false)"
+                    class="flex w-full items-center gap-2 px-3 py-2 hover:bg-accent cursor-pointer border-b border-foreground/5 text-sm text-muted-foreground">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    Toate tagurile
+                  </button>
+                }
+                @for (t of filteredTagsList(); track t) {
+                  <button type="button" (click)="onFilterChange('tag', t); tagFilterDropdownOpen.set(false)"
+                    [class]="'flex w-full items-center px-3 py-2 hover:bg-accent cursor-pointer text-sm ' + (store.state().tag === t ? 'bg-primary/5 font-medium' : '')">
+                    {{ t }}
+                  </button>
+                }
+                @if (filteredTagsList().length === 0) {
+                  <div class="px-3 py-4 text-sm text-muted-foreground text-center">Niciun tag gasit</div>
+                }
+              </div>
+            </div>
+          }
+        </div>
       </div>
 
       <!-- Bulk action bar -->
@@ -338,6 +381,7 @@ import { ConfirmDialogComponent } from '../../../shared/ui/confirm-dialog.compon
               <th class="hidden md:table-cell text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">{{ 'field.hours' | t }}</th>
               <th class="text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">{{ 'field.remuneration' | t }}</th>
               <th class="hidden md:table-cell text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">{{ 'common.date' | t }}</th>
+              <th class="hidden lg:table-cell text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap text-xs uppercase tracking-wide">Tag</th>
               <th class="text-muted-foreground h-10 px-4 text-start align-middle font-medium whitespace-nowrap w-10"></th>
             </tr>
           </thead>
@@ -371,6 +415,13 @@ import { ConfirmDialogComponent } from '../../../shared/ui/confirm-dialog.compon
                 <td class="hidden md:table-cell px-4 py-3 align-middle whitespace-nowrap text-foreground/80">{{ voucher.hoursWorked }}h</td>
                 <td class="px-4 py-3 align-middle whitespace-nowrap text-foreground/80">{{ voucher.netRemuneration }} {{ 'common.mdl' | t }}</td>
                 <td class="hidden md:table-cell px-4 py-3 align-middle whitespace-nowrap text-foreground/80">{{ voucher.workDate }}</td>
+                <td class="hidden lg:table-cell px-4 py-3 align-middle whitespace-nowrap">
+                  @if (voucher.tag) {
+                    <span class="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{{ voucher.tag }}</span>
+                  } @else {
+                    <span class="text-foreground/30">—</span>
+                  }
+                </td>
                 <td class="px-4 py-3 align-middle whitespace-nowrap">
                   <div class="relative">
                     <button
@@ -561,6 +612,14 @@ export class VoucherListComponent implements OnInit {
   protected readonly allCompanies = signal<BeneficiaryModel[]>([]);
   protected readonly companySearch = signal('');
   protected readonly companyDropdownOpen = signal(false);
+  protected readonly allTags = signal<string[]>([]);
+  protected readonly tagFilterSearch = signal('');
+  protected readonly tagFilterDropdownOpen = signal(false);
+  protected readonly filteredTagsList = computed(() => {
+    const term = this.tagFilterSearch().toLowerCase().trim();
+    const tags = this.allTags();
+    return term ? tags.filter(t => t.toLowerCase().includes(term)) : tags;
+  });
 
   protected readonly filteredCompanies = computed(() => {
     const term = this.companySearch().trim().toLowerCase();
@@ -786,6 +845,7 @@ export class VoucherListComponent implements OnInit {
     if (this.isInspector()) {
       this.api.getBeneficiaries({ limit: 1000, offset: 0 }).subscribe(r => this.allCompanies.set(r.items));
     }
+    this.api.getVoucherTags().subscribe({ next: (tags) => this.allTags.set(tags ?? []) });
   }
 
   protected onFilterChange(key: string, value: string): void {
