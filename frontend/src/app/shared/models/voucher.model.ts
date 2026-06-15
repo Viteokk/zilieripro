@@ -17,6 +17,7 @@ export interface VoucherTableItem {
   createdAt: string;
   workerPhone?: string;
   workerEmail?: string;
+  tag?: string;
 }
 
 export interface VoucherDetail {
@@ -48,6 +49,7 @@ export interface VoucherDetail {
   signedAt?: string;
   workerPhone?: string;
   workerEmail?: string;
+  tag?: string;
   worker: WorkerModel;
   beneficiary: BeneficiaryModel;
 }
@@ -91,6 +93,7 @@ export interface CreateVoucherRequest {
   workLocality: string;
   workAddress?: string;
   activityType?: string;
+  tag?: string;
   art5Alin1LitB: boolean;
   art5Alin1LitG: boolean;
   workers: VoucherWorkerRequest[];
@@ -216,3 +219,4 @@ export interface CreateBeneficiaryRequest {
   phone?: string;
   email?: string;
 }
+

@@ -85,6 +85,10 @@ export class ApiService {
     return this.get<PaginatedResult<VoucherTableItem>>('/vouchers', params);
   }
 
+  getVoucherTags(): Observable<string[]> {
+    return this.get<string[]>('/vouchers/tags');
+  }
+
   getVoucher(id: string): Observable<VoucherDetail> {
     return this.get<VoucherDetail>(`/vouchers/${id}`);
   }
@@ -205,4 +209,5 @@ export class ApiService {
   getNomenclators(category: string): Observable<NomenclatorModel[]> {
     return this.get<NomenclatorModel[]>('/nomenclators', { category });
   }
+
 }

@@ -9,6 +9,7 @@ interface NavItem {
   label: string;
   route: string;
   icon: string;
+  separator?: boolean;
 }
 
 @Component({
@@ -139,6 +140,9 @@ interface NavItem {
       </div>
 
       <ng-template #navLink let-item>
+        @if (item.separator) {
+          <div class="my-2 border-t border-border"></div>
+        }
         <a
           [routerLink]="item.route"
           routerLinkActive="bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80"
@@ -178,6 +182,7 @@ export class SidebarLayoutComponent {
     { label: 'nav.statistics', route: '/statistics', icon: '\u{1F4CA}' },
     { label: 'nav.ipc21', route: '/reports/ipc21', icon: '\u{1F4C4}' },
     { label: 'nav.company', route: '/company', icon: '\u{1F3E2}' },
+    { label: 'nav.guide', route: '/guide', icon: '\u{1F4D6}', separator: true },
   ];
 
   readonly inspectorNav: NavItem[] = [

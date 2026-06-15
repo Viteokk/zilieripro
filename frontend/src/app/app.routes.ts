@@ -41,6 +41,8 @@ export const routes: Routes = [
       { path: 'admin/nomenclators', loadComponent: () => import('./domains/user-management/feature/nomenclators.component').then(m => m.NomenclatorsComponent) },
       { path: 'admin/audit', loadComponent: () => import('./domains/user-management/feature/audit-log.component').then(m => m.AuditLogComponent) },
       { path: 'admin/companies', loadComponent: () => import('./domains/user-management/feature/company-management.component').then(m => m.CompanyManagementComponent) },
+      // Guides
+      { path: 'guide', loadComponent: () => import('./domains/guides/feature/guide.component').then(m => m.GuideComponent) },
       // Default
       { path: '', redirectTo: 'vouchers', pathMatch: 'full' },
     ],

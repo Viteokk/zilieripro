@@ -9,10 +9,10 @@ type Dict = Record<string, string>;
 const RO: Dict = {
   // Navigation
   'nav.vouchers': 'Registru', 'nav.workers': 'Lucratori', 'nav.reports': 'Rapoarte',
-  'nav.ipc21': 'IPC-21', 'nav.company': 'Profil companie', 'nav.dashboard': 'Dashboard',
+  'nav.ipc21': 'Raportare', 'nav.company': 'Profil companie', 'nav.dashboard': 'Dashboard',
   'nav.users': 'Utilizatori', 'nav.params': 'Parametri sistem',
   'nav.nomenclators': 'Nomenclatoare', 'nav.audit': 'Audit trail',
-  'nav.companies': 'Companii',
+  'nav.companies': 'Companii', 'nav.guide': 'Ghid utilizator', 'nav.guides': 'Ghiduri',
   'nav.myVouchers': 'Voucherele mele',
   'nav.statistics': 'Statistici',
 
@@ -225,10 +225,10 @@ const RO: Dict = {
 
 const RU: Dict = {
   'nav.vouchers': 'Реестр', 'nav.workers': 'Работники', 'nav.reports': 'Отчеты', 'nav.statistics': 'Статистика',
-  'nav.ipc21': 'IPC-21', 'nav.company': 'Профиль компании', 'nav.dashboard': 'Панель',
+  'nav.ipc21': 'Raportare', 'nav.company': 'Профиль компании', 'nav.dashboard': 'Панель',
   'nav.users': 'Пользователи', 'nav.params': 'Параметры системы',
   'nav.nomenclators': 'Номенклатуры', 'nav.audit': 'Журнал аудита',
-  'nav.companies': 'Компании',
+  'nav.companies': 'Компании', 'nav.guide': 'Руководство', 'nav.guides': 'Руководства',
   'nav.myVouchers': 'Мои ваучеры',
 
   'action.logout': 'Выход', 'action.create': 'Создать', 'action.edit': 'Редактировать',
@@ -424,10 +424,10 @@ const RU: Dict = {
 
 const EN: Dict = {
   'nav.vouchers': 'Register', 'nav.workers': 'Workers', 'nav.reports': 'Reports', 'nav.statistics': 'Statistics',
-  'nav.ipc21': 'IPC-21', 'nav.company': 'Company profile', 'nav.dashboard': 'Dashboard',
+  'nav.ipc21': 'Raportare', 'nav.company': 'Company profile', 'nav.dashboard': 'Dashboard',
   'nav.users': 'Users', 'nav.params': 'System parameters',
   'nav.nomenclators': 'Nomenclatures', 'nav.audit': 'Audit trail',
-  'nav.companies': 'Companies',
+  'nav.companies': 'Companies', 'nav.guide': 'User guide', 'nav.guides': 'Guides',
   'nav.myVouchers': 'My vouchers',
 
   'action.logout': 'Logout', 'action.create': 'Create', 'action.edit': 'Edit',

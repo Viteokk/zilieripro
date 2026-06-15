@@ -184,17 +184,37 @@ interface CompanyInfo {
           <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6" (click)="$event.stopPropagation()">
             <h3 class="text-lg font-semibold mb-4">Editeaza utilizator</h3>
             <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-1.5">
+                  <label class="text-xs text-muted-foreground">Nume *</label>
+                  <input type="text" [value]="editingUser()?.lastName ?? ''"
+                    (input)="updateEditingUser('lastName', $any($event.target).value)"
+                    class="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-xs text-muted-foreground">Prenume *</label>
+                  <input type="text" [value]="editingUser()?.firstName ?? ''"
+                    (input)="updateEditingUser('firstName', $any($event.target).value)"
+                    class="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm" />
+                </div>
+              </div>
               <div class="space-y-1.5">
-                <label class="text-xs text-muted-foreground">Functie *</label>
-                <input type="text" [value]="editingUser()?.jobTitle ?? ''"
-                  (input)="updateEditingUser('jobTitle', $any($event.target).value)"
-                  class="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm" placeholder="ex: Contabil, Director..." />
+                <label class="text-xs text-muted-foreground">Email *</label>
+                <input type="email" [value]="editingUser()?.email ?? ''"
+                  (input)="updateEditingUser('email', $any($event.target).value)"
+                  class="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm" />
               </div>
               <div class="space-y-1.5">
                 <label class="text-xs text-muted-foreground">Telefon</label>
                 <input type="tel" [value]="editingUser()?.phone ?? ''"
                   (input)="updateEditingUser('phone', $any($event.target).value)"
                   class="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm" />
+              </div>
+              <div class="space-y-1.5">
+                <label class="text-xs text-muted-foreground">Functie *</label>
+                <input type="text" [value]="editingUser()?.jobTitle ?? ''"
+                  (input)="updateEditingUser('jobTitle', $any($event.target).value)"
+                  class="flex h-9 w-full rounded-md border border-input bg-white px-3 py-1 text-sm" placeholder="ex: Contabil, Director..." />
               </div>
             </div>
             @if (editUserError()) {
@@ -225,7 +245,7 @@ export class CompanyProfileComponent implements OnInit {
   protected readonly addUserSubmitting = signal(false);
   protected readonly newUser = signal({ idnp: '', firstName: '', lastName: '', email: '', phone: '', jobTitle: '' });
 
-  protected readonly editingUser = signal<{ id: string; jobTitle: string; phone: string } | null>(null);
+  protected readonly editingUser = signal<{ id: string; firstName: string; lastName: string; email: string; phone: string; jobTitle: string } | null>(null);
   protected readonly showEditModal = signal(false);
   protected readonly editUserSubmitting = signal(false);
   protected readonly editUserError = signal('');
@@ -281,7 +301,7 @@ export class CompanyProfileComponent implements OnInit {
   }
 
   protected editUser(u: UserTableItem): void {
-    this.editingUser.set({ id: u.id, jobTitle: u.jobTitle ?? '', phone: u.phone ?? '' });
+    this.editingUser.set({ id: u.id, firstName: u.firstName, lastName: u.lastName, email: u.email ?? '', phone: u.phone ?? '', jobTitle: u.jobTitle ?? '' });
     this.editUserError.set('');
     this.showEditModal.set(true);
   }
@@ -293,12 +313,27 @@ export class CompanyProfileComponent implements OnInit {
   protected saveEditUser(): void {
     this.editUserError.set('');
     const eu = this.editingUser();
-    if (!eu || !eu.jobTitle.trim()) {
+    if (!eu) return;
+    if (!eu.lastName.trim() || !eu.firstName.trim()) {
+      this.editUserError.set('Numele si prenumele sunt obligatorii.');
+      return;
+    }
+    if (!eu.email.trim()) {
+      this.editUserError.set('Email-ul este obligatoriu.');
+      return;
+    }
+    if (!eu.jobTitle.trim()) {
       this.editUserError.set('Functia este obligatorie.');
       return;
     }
     this.editUserSubmitting.set(true);
-    this.api.updateUser(eu.id, { jobTitle: eu.jobTitle.trim(), phone: eu.phone || undefined } as any).subscribe({
+    this.api.updateUser(eu.id, {
+      firstName: eu.firstName.trim(),
+      lastName: eu.lastName.trim(),
+      email: eu.email.trim(),
+      phone: eu.phone || undefined,
+      jobTitle: eu.jobTitle.trim(),
+    } as any).subscribe({
       next: () => {
         this.editUserSubmitting.set(false);
         this.showEditModal.set(false);

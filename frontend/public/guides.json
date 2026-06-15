@@ -1,0 +1,37 @@
+[
+  {
+    "id": "1",
+    "title": "Creare și emitere voucher",
+    "description": "Pași pentru completarea și emiterea unui voucher",
+    "type": "pdf",
+    "url": "https://drive.google.com/file/d/PLACEHOLDER_PDF_1/view"
+  },
+  {
+    "id": "2",
+    "title": "Gestionare lucrători",
+    "description": "Adăugare, editare și validare RSP",
+    "type": "pdf",
+    "url": "https://drive.google.com/file/d/PLACEHOLDER_PDF_2/view"
+  },
+  {
+    "id": "3",
+    "title": "Raportare IPC-21",
+    "description": "Generare și transmitere raport lunar",
+    "type": "pdf",
+    "url": "https://drive.google.com/file/d/PLACEHOLDER_PDF_3/view"
+  },
+  {
+    "id": "4",
+    "title": "Introducere în platformă",
+    "description": "Prezentare generală a funcționalităților",
+    "type": "video",
+    "url": "https://drive.google.com/file/d/PLACEHOLDER_VIDEO_1/view"
+  },
+  {
+    "id": "5",
+    "title": "Cum creezi un voucher",
+    "description": "Tutorial pas cu pas pentru creare voucher",
+    "type": "video",
+    "url": "https://drive.google.com/file/d/PLACEHOLDER_VIDEO_2/view"
+  }
+]
